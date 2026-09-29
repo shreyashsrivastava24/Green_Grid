@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Manrope', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+:root {
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+
+  /* Architectural Warm Stone & Vibrant Emerald Tokens */
+  --canvas: #fbfbfa;
+  --surface: #ffffff;
+  --surface-stone: #f5f5f0;
+  --surface-dark: #0e1713;
+  --surface-forest: #059669;
+  
+  --line-subtle: #e6e6de;
+  --line-strong: #101512;
+  --line-forest: rgba(5, 150, 105, 0.2);
+
+  --ink-primary: #101512;
+  --ink-secondary: #4a544e;
+  --ink-muted: #7e8881;
+  --ink-faint: #b4bcb6;
+
+  --signal-green: #059669;
+  --signal-teal: #0891b2;
+  --signal-amber: #d97706;
+  --signal-red: #e11d48;
+}
+
+html {
+  background: var(--canvas);
+  color: var(--ink-primary);
+}
+
+body {
+  min-height: 100vh;
+  background: var(--canvas);
+  color: var(--ink-primary);
+  font-feature-settings: 'ss01' on, 'cv11' on, 'tnum' on;
+}
+
+/* Subtle architectural grid */
+.editorial-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(16, 21, 18, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16, 21, 18, 0.03) 1px, transparent 1px);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+a {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: 160ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Recharts styling for editorial styling */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgba(16, 21, 18, 0.06);
+}
+
+.recharts-text {
+  fill: #6e7972;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.recharts-tooltip-cursor {
+  stroke: #101512;
+  stroke-width: 1px;
+  stroke-dasharray: 2 2;
+}
+
+::selection {
+  background: #059669;
+  color: #ffffff;
+}
+
+/* Precision scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #f5f5f0;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd3cc;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9aa59d;
+}
+
+/* Living Energy Flow Line Keyframes */
+@keyframes flowDashForward {
+  from {
+    stroke-dashoffset: 48;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-flow-dash {
+  stroke-dasharray: 6 6;
+  animation: flowDashForward 1.2s linear infinite;
+}
+
+.animate-flow-dash-slow {
+  stroke-dasharray: 6 6;
+  animation: flowDashForward 1.8s linear infinite;
+}
+
+@keyframes signalPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+}
+
+.signal-pulse {
+  animation: signalPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "GreenGrid – Smart Energy Management System",
+  "description": "Smart energy management dashboard for monitoring and analyzing electricity consumption, solar generation, costs, alerts, and efficiency recommendations across facilities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
