@@ -41,42 +41,46 @@ export const Modal: React.FC<ModalProps> = ({
   }[maxWidth];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-mono">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-[#101512]/60 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Modal Console Frame */}
+      {/* Modal Dialog Frame */}
       <div
-        className={`relative w-full ${maxWidthClass} bg-[#fbfbfa] border border-[#e2e2d8] shadow-2xl overflow-hidden z-10 flex flex-col max-h-[90vh]`}
+        className={`relative w-full ${maxWidthClass} bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150`}
         role="dialog"
         aria-modal="true"
       >
-        <div className="flex items-start justify-between px-6 py-5 border-b border-[#e2e2d8]">
+        <div className="flex items-start justify-between px-6 py-5 border-b border-slate-100">
           <div>
-            <h3 className="text-base sm:text-lg font-bold text-[#101512] tracking-tight font-editorial uppercase">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
               {title}
             </h3>
-            {subtitle && <p className="text-xs text-[#525f56] mt-0.5 font-sans">{subtitle}</p>}
+            {subtitle && (
+              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                {subtitle}
+              </p>
+            )}
           </div>
           <button
             onClick={onClose}
-            className="text-[#6f7e75] hover:text-[#101512] p-1.5 transition-colors cursor-pointer hover:bg-[#f5f5ee]"
+            className="text-slate-400 hover:text-slate-700 p-1.5 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
             aria-label="Close modal"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="px-6 py-5 overflow-y-auto space-y-4 text-xs text-[#101512]">
+        <div className="px-6 py-5 overflow-y-auto space-y-4 text-xs sm:text-sm text-slate-700">
           {children}
         </div>
 
         {footer && (
-          <div className="px-6 py-4 bg-[#f5f5ee] border-t border-[#e2e2d8] flex items-center justify-end gap-3">
+          <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
             {footer}
           </div>
         )}

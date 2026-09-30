@@ -1,4 +1,5 @@
 export type PageId =
+  | 'landing'
   | 'login'
   | 'dashboard'
   | 'facilities'

@@ -21,6 +21,7 @@ interface StatusBadgeProps {
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' }) => {
   const isSm = size === 'sm';
+  const sizeClasses = isSm ? 'text-[11px] px-2 py-0.5' : 'text-xs px-2.5 py-0.5';
 
   switch (status) {
     case 'Normal':
@@ -29,11 +30,9 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' })
     case 'Low':
       return (
         <span
-          className={`inline-flex items-center gap-1.5 font-mono uppercase tracking-wider font-semibold text-[#0c3822] bg-[#eef7f2] border border-[#c4e4d2] rounded-xs px-2 py-0.5 ${
-            isSm ? 'text-[10px]' : 'text-xs'
-          }`}
+          className={`inline-flex items-center gap-1.5 rounded-full font-medium bg-green-50 text-green-700 border border-green-200 ${sizeClasses}`}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-[#059669] shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-green-600 shrink-0" />
           <span>{status}</span>
         </span>
       );
@@ -44,11 +43,9 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' })
     case 'Warning':
       return (
         <span
-          className={`inline-flex items-center gap-1.5 font-mono uppercase tracking-wider font-semibold text-[#854d0e] bg-[#fefce8] border border-[#fef08a] rounded-xs px-2 py-0.5 ${
-            isSm ? 'text-[10px]' : 'text-xs'
-          }`}
+          className={`inline-flex items-center gap-1.5 rounded-full font-medium bg-amber-50 text-amber-800 border border-amber-200 ${sizeClasses}`}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-[#d97706] shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
           <span>{status}</span>
         </span>
       );
@@ -58,29 +55,28 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' })
     case 'High':
       return (
         <span
-          className={`inline-flex items-center gap-1.5 font-mono uppercase tracking-wider font-semibold text-[#9f1239] bg-[#fff1f2] border border-[#fecdd3] rounded-xs px-2 py-0.5 ${
-            isSm ? 'text-[10px]' : 'text-xs'
-          }`}
+          className={`inline-flex items-center gap-1.5 rounded-full font-medium bg-rose-50 text-rose-700 border border-rose-200 ${sizeClasses}`}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-[#e11d48] shrink-0 signal-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-600 shrink-0" />
           <span>{status}</span>
         </span>
       );
     case 'Info':
       return (
         <span
-          className={`inline-flex items-center gap-1.5 font-mono uppercase tracking-wider font-semibold text-[#0e7490] bg-[#ecfeff] border border-[#a5f3fc] rounded-xs px-2 py-0.5 ${
-            isSm ? 'text-[10px]' : 'text-xs'
-          }`}
+          className={`inline-flex items-center gap-1.5 rounded-full font-medium bg-sky-50 text-sky-700 border border-sky-200 ${sizeClasses}`}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-[#0891b2] shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-sky-600 shrink-0" />
           <span>{status}</span>
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-[#4a544e] bg-[#f0f0ea] border border-[#d8d8ce] rounded-xs px-2 py-0.5 uppercase tracking-wider">
-          {status}
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full font-medium bg-slate-100 text-slate-700 border border-slate-200 ${sizeClasses}`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-500 shrink-0" />
+          <span>{status}</span>
         </span>
       );
   }

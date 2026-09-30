@@ -11,6 +11,8 @@ import {
   CreditCard,
   ShieldCheck,
   ChevronRight,
+  Printer,
+  Sparkles,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -26,20 +28,23 @@ import {
   ReferenceArea,
   ReferenceLine,
 } from 'recharts';
-import { Bill } from '../../types';
+import { Bill, PageId } from '../../types';
 import { ViewBillModal } from '../modals/ViewBillModal';
 import { MONTHLY_COST_DATA, HOURLY_CONSUMPTION_DATA } from '../../data/mockData';
+import { PlatformShell } from '../common/PlatformShell';
 
 interface BillingPageProps {
   bills: Bill[];
   onDownloadBill: (invoiceNo: string) => void;
   onPayBill: (billId: string) => void;
+  onNavigate?: (page: PageId) => void;
 }
 
 export const BillingPage: React.FC<BillingPageProps> = ({
   bills,
   onDownloadBill,
   onPayBill,
+  onNavigate = () => {},
 }) => {
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -51,391 +56,255 @@ export const BillingPage: React.FC<BillingPageProps> = ({
     setIsModalOpen(true);
   };
 
-  // Hourly tariff cost simulation data
-  const tariffHourlyData = HOURLY_CONSUMPTION_DATA.map((h) => {
-    const isPeak = h.time === '14:00' || h.time === '16:00';
-    const isOffPeak =
-      h.time === '00:00' || h.time === '02:00' || h.time === '04:00' || h.time === '22:00';
-    const rate = isPeak ? 9.6 : isOffPeak ? 6.3 : 7.5;
-    return {
-      ...h,
-      rate,
-      costEstimate: Math.round(h.grid * rate),
-      solarSavingsEstimate: Math.round(h.solar * rate),
-      rateType: isPeak ? 'TOD Peak Surcharge' : isOffPeak ? 'Off-Peak Incentive' : 'Normal Rate',
-    };
-  });
-
   return (
-    <div className="space-y-10 pb-16">
-      {/* ========================================================
-          1. EDITORIAL HEADER & FINANCE STRIP
-          ======================================================== */}
-      <section className="pt-2">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[#e2e2d8]">
-          <div className="space-y-2">
-            <div className="text-[11px] font-mono tracking-[0.22em] text-[#059669] uppercase font-semibold">
-              ENERGY FINANCE TERMINAL // DISCOM HT-2a
-            </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#101512] tracking-tight leading-[1.08] font-editorial">
-              TARIFF RECONCILIATION<br />
-              <span className="text-[#059669]">&amp; COST TERMINAL</span>
-            </h1>
-            <p className="text-sm sm:text-base text-[#525f56] font-sans max-w-xl">
-              Utility statement audit, time-of-day surcharge tracking, net-metering solar export credits, and demand charge shaving.
-            </p>
-          </div>
-
+    <PlatformShell
+      pageTitle="Utility Billing Reconciliation & Tariff Audit"
+      pageCategory="Commercial Tariffs"
+      pageDescription="Line-by-line DISCOM electricity bill audit, Time-of-Day peak penalty tracking, and rooftop solar net-metering credits."
+      onNavigate={onNavigate}
+      actions={
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => onDownloadBill(currentBill.invoiceNo)}
-            className="px-4 py-2 bg-[#059669] hover:bg-[#047857] text-white text-xs font-mono font-bold tracking-wider transition-colors flex items-center gap-2 cursor-pointer shadow-sm self-start sm:self-auto"
+            onClick={() => handleOpenBill(currentBill)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-green-700 hover:bg-green-800 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>EXPORT STATEMENT ({currentBill.invoiceNo.slice(-7)})</span>
+            <Receipt className="w-4 h-4" />
+            <span>View Latest Statement</span>
           </button>
         </div>
-
-        {/* Financial Horizontal Telemetry Rail */}
-        <div className="mt-6 border border-[#dcdcd2] bg-[#f5f5ee] divide-y md:divide-y-0 md:divide-x divide-[#dcdcd2] grid grid-cols-2 md:grid-cols-4 font-mono">
-          <div className="p-4 sm:p-5">
-            <span className="text-[10px] uppercase tracking-[0.16em] text-[#6f7e75] block">NET BILLED MTD</span>
-            <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#101512] tabular-nums">
-                ₹{(currentBill.totalAmountInr / 100000).toFixed(2)}
-              </span>
-              <span className="text-xs text-[#6f7e75]">Lakh</span>
+      }
+    >
+      {/* 1. Overview Financial Impact KPIs */}
+      <section className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+          <div className="pt-2 md:pt-0 md:px-3">
+            <div className="text-xs text-slate-500 font-medium">Billed Utility Spend (YTD)</div>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl sm:text-3xl font-bold text-slate-900">₹42.7L</span>
             </div>
-            <span className="text-[11px] text-[#6f7e75] mt-1 block">Due: {currentBill.dueDate}</span>
+            <div className="mt-1 text-[11px] text-slate-600 font-medium">
+              Across 5 enterprise campuses
+            </div>
           </div>
 
-          <div className="p-4 sm:p-5">
-            <span className="text-[10px] uppercase tracking-[0.16em] text-[#6f7e75] block">SOLAR REBATE CREDIT</span>
-            <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#059669] tabular-nums">
-                -₹{(currentBill.solarCreditInr / 1000).toFixed(0)}
-              </span>
-              <span className="text-xs text-[#059669]">k</span>
+          <div className="pt-2 md:pt-0 md:px-3">
+            <div className="text-xs text-slate-500 font-medium">Solar Net-Metering Credits</div>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl sm:text-3xl font-bold text-green-700">₹5.42L</span>
             </div>
-            <span className="text-[11px] text-[#059669] mt-1 block">{currentBill.solarGeneratedKwh.toLocaleString()} kWh exported</span>
+            <div className="mt-1 text-[11px] text-green-700 font-semibold">
+              ✓ Direct deduction from DISCOM dues
+            </div>
           </div>
 
-          <div className="p-4 sm:p-5">
-            <span className="text-[10px] uppercase tracking-[0.16em] text-[#6f7e75] block">TOD PEAK SURCHARGE</span>
-            <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#9a3412] tabular-nums">
-                ₹{(currentBill.peakHourSurchargesInr / 1000).toFixed(1)}
-              </span>
-              <span className="text-xs text-[#9a3412]">k</span>
+          <div className="pt-2 md:pt-0 md:px-3">
+            <div className="text-xs text-slate-500 font-medium">Peak Penalties Avoided</div>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl sm:text-3xl font-bold text-slate-900">₹2.18L</span>
             </div>
-            <span className="text-[11px] text-[#9a3412] mt-1 block">14:00–17:30 window</span>
+            <div className="mt-1 text-[11px] text-green-700 font-semibold">
+              Via thermal mass pre-cooling
+            </div>
           </div>
 
-          <div className="p-4 sm:p-5">
-            <span className="text-[10px] uppercase tracking-[0.16em] text-[#6f7e75] block">AI SHAVING RECOVERY</span>
-            <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#059669] tabular-nums">
-                ₹1.12
-              </span>
-              <span className="text-xs text-[#059669]">Lakh</span>
+          <div className="pt-2 md:pt-0 md:px-3">
+            <div className="text-xs text-slate-500 font-medium">Audit Reconciliation</div>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl sm:text-3xl font-bold text-green-700">100%</span>
             </div>
-            <span className="text-[11px] text-[#059669] mt-1 block">Pre-cooling &amp; pump dispatch</span>
+            <div className="mt-1 text-[11px] text-green-700 font-semibold">
+              Zero billing discrepancy found
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ========================================================
-          2. THE 24-HOUR COST JOURNEY: WHEN DID WE SPEND MONEY?
-          ======================================================== */}
-      <section className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-3 border-b border-[#e2e2d8] gap-3">
+      {/* 2. Current Month Invoice Reconciliation Card */}
+      <section className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-4 border-b border-slate-100">
           <div>
-            <div className="text-[10px] font-mono tracking-[0.2em] uppercase text-[#6f7e75]">
-              DIURNAL EXPENDITURE OVERLAY // WHEN DID WE SPEND MONEY?
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                Payment Due · 15 Oct 2026
+              </span>
+              <span className="text-xs text-slate-400 font-mono">Invoice #{currentBill.invoiceNo}</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#101512] tracking-tight font-editorial mt-0.5">
-              THE 24-HOUR COST JOURNEY
-            </h2>
-            <p className="text-xs text-[#525f56] font-sans">
-              Visualizing how grid draw correlates with Time-of-Day utility rates, proving exactly which daytime hours drive your electric bill.
+
+            <h3 className="text-2xl font-bold text-slate-900 tracking-tight mt-1.5">
+              ₹{currentBill.totalAmountInr.toLocaleString()}{' '}
+              <span className="text-xs font-normal text-slate-500">
+                for {currentBill.netBilledUnitsKwh.toLocaleString()} billed kWh
+              </span>
+            </h3>
+
+            <p className="text-xs text-slate-500 mt-1">
+              Facility: <strong className="text-slate-800">{currentBill.facilityName}</strong> · HT-2a Commercial Industrial Tariff Tier
             </p>
           </div>
 
-          <div className="flex items-center gap-3 text-xs font-mono text-[#6f7e75]">
-            <span className="text-amber-700 font-bold">14:00–16:00 accounts for 32% of daily cost</span>
-          </div>
-        </div>
-
-        {/* Phase Horizon Rail: OFF-PEAK -> NORMAL -> PEAK -> NORMAL -> OFF-PEAK */}
-        <div className="border border-[#dcdcd2] bg-[#f5f5ee] divide-y sm:divide-y-0 sm:divide-x divide-[#dcdcd2] grid grid-cols-2 sm:grid-cols-5 text-xs font-mono">
-          <div className="p-3 bg-[#ebebe2]">
-            <span className="text-[10px] text-[#059669] font-bold uppercase block">00:00 – 06:00</span>
-            <span className="font-bold text-[#101512]">OFF-PEAK</span>
-            <div className="text-[11px] text-[#059669] mt-0.5 font-bold">₹6.30 / kWh</div>
-          </div>
-          <div className="p-3">
-            <span className="text-[10px] text-[#525f56] font-bold uppercase block">06:00 – 14:00</span>
-            <span className="font-bold text-[#101512]">NORMAL TARIFF</span>
-            <div className="text-[11px] text-[#525f56] mt-0.5 font-bold">₹7.50 / kWh</div>
-          </div>
-          <div className="p-3 bg-[#fef7ee] border-b-2 sm:border-b-0 sm:border-t-2 border-amber-600">
-            <span className="text-[10px] text-[#9a3412] font-bold uppercase block">14:00 – 18:00</span>
-            <span className="font-bold text-[#9a3412]">TOD PEAK SURCHARGE</span>
-            <div className="text-[11px] text-[#9a3412] mt-0.5 font-bold">₹9.60 / kWh (+28%)</div>
-          </div>
-          <div className="p-3">
-            <span className="text-[10px] text-[#525f56] font-bold uppercase block">18:00 – 22:00</span>
-            <span className="font-bold text-[#101512]">NORMAL TARIFF</span>
-            <div className="text-[11px] text-[#525f56] mt-0.5 font-bold">₹7.50 / kWh</div>
-          </div>
-          <div className="p-3 bg-[#ebebe2] col-span-2 sm:col-span-1">
-            <span className="text-[10px] text-[#059669] font-bold uppercase block">22:00 – 24:00</span>
-            <span className="font-bold text-[#101512]">OFF-PEAK NIGHT</span>
-            <div className="text-[11px] text-[#059669] mt-0.5 font-bold">₹6.30 / kWh</div>
-          </div>
-        </div>
-
-        {/* Hourly Cost & Demand Area Chart Canvas */}
-        <div className="bg-[#fbfbfa] border border-[#e2e2d8] p-5 sm:p-7 relative overflow-hidden">
-          <div className="w-full h-[320px] sm:h-[360px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={tariffHourlyData} margin={{ top: 15, right: 20, left: -10, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="costGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#d97706" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="#d97706" stopOpacity={0.01} />
-                  </linearGradient>
-                  <linearGradient id="loadGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0284c7" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#0284c7" stopOpacity={0.01} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="2 2" stroke="#e8e8df" vertical={false} />
-                <XAxis dataKey="time" stroke="#8e9e94" fontSize={11} tickLine={false} fontFamily="var(--font-mono)" />
-                <YAxis stroke="#8e9e94" fontSize={11} tickLine={false} fontFamily="var(--font-mono)" />
-                <Tooltip
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload;
-                      return (
-                        <div className="bg-[#101512] text-[#fbfbfa] p-3 rounded-xs border border-[#2a3830] shadow-xl text-xs font-mono">
-                          <div className="flex items-center justify-between pb-1 mb-1.5 border-b border-white/10">
-                            <span>HOUR // {label}</span>
-                            <span className="text-[9px] text-amber-400 font-bold">{data.rateType}</span>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="flex justify-between gap-4">
-                              <span className="text-[#8e9e94]">Grid Draw:</span>
-                              <span className="font-bold text-white">{data.grid} kW</span>
-                            </div>
-                            <div className="flex justify-between gap-4">
-                              <span className="text-[#8e9e94]">Tariff Rate:</span>
-                              <span className="font-bold text-amber-400">₹{data.rate.toFixed(2)}/kWh</span>
-                            </div>
-                            <div className="flex justify-between gap-4 pt-1 border-t border-white/10">
-                              <span className="text-[#8e9e94]">Hourly Expense:</span>
-                              <span className="font-bold text-[#059669]">₹{data.costEstimate.toLocaleString()}</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Legend
-                  verticalAlign="top"
-                  align="right"
-                  iconType="plainline"
-                  wrapperStyle={{ fontSize: '11px', paddingBottom: '12px', fontFamily: 'var(--font-mono)' }}
-                />
-
-                {/* Peak Window Highlight */}
-                <ReferenceArea
-                  x1="14:00"
-                  x2="16:00"
-                  fill="#d97706"
-                  fillOpacity={0.08}
-                />
-
-                <Area
-                  type="monotone"
-                  dataKey="costEstimate"
-                  name="Hourly Spend Rupee Impact (₹)"
-                  stroke="#d97706"
-                  strokeWidth={2.5}
-                  fill="url(#costGrad)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="grid"
-                  name="Grid Power Draw (kW)"
-                  stroke="#0284c7"
-                  strokeWidth={1.8}
-                  strokeDasharray="4 4"
-                  fill="url(#loadGrad)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-[#ebebe2] flex flex-wrap items-center justify-between text-xs font-mono text-[#6f7e75] gap-2">
-            <span>Peak TOD Surcharge Zone: 14:00 – 18:00 IST</span>
-            <span className="text-[#059669] font-bold">Shifting 45 kW saves ₹42,000 monthly</span>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================
-          3. DISCOM TARIFF TIERS & 6-MONTH SPEND WATERFALL
-          ======================================================== */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left (5 cols): Commercial HT-2a Tariff Structure */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="pb-3 border-b border-[#e2e2d8]">
-            <h3 className="text-xl font-bold text-[#101512] font-editorial uppercase tracking-tight">
-              COMMERCIAL HT-2a TARIFF
-            </h3>
-            <span className="text-xs font-mono text-[#6f7e75]">STATE DISCOM CONTRACT TIER</span>
-          </div>
-
-          <div className="border border-[#e2e2d8] divide-y divide-[#e2e2d8] bg-[#fbfbfa] font-mono text-xs">
-            <div className="p-3.5 flex items-center justify-between">
-              <span className="text-[#525f56]">Base Energy Charge (Normal)</span>
-              <span className="font-bold text-[#101512]">₹7.50 / kWh</span>
-            </div>
-            <div className="p-3.5 flex items-center justify-between bg-[#fef7ee]">
-              <span className="text-amber-800 font-bold">TOD Peak Surcharge (14:00–18:00)</span>
-              <span className="font-bold text-amber-800">+₹2.10 / kWh</span>
-            </div>
-            <div className="p-3.5 flex items-center justify-between bg-[#f0fdf4]">
-              <span className="text-[#059669] font-bold">Off-Peak Incentive (22:00–06:00)</span>
-              <span className="font-bold text-[#059669]">-₹1.20 / kWh</span>
-            </div>
-            <div className="p-3.5 flex items-center justify-between">
-              <span className="text-[#525f56]">Fixed Demand Charge</span>
-              <span className="font-bold text-[#101512]">₹280 / kVA / mo</span>
-            </div>
-            <div className="p-3.5 flex items-center justify-between">
-              <span className="text-[#525f56]">Solar Feed-In Export Credit</span>
-              <span className="font-bold text-[#059669]">-₹4.00 / kWh</span>
-            </div>
-            <div className="p-3.5 flex items-center justify-between">
-              <span className="text-[#525f56]">State Electricity Duty &amp; Cess</span>
-              <span className="font-bold text-[#101512]">6.0% ad valorem</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right (7 cols): 6-Month Expenditure Waterfall */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="pb-3 border-b border-[#e2e2d8]">
-            <h3 className="text-xl font-bold text-[#101512] font-editorial uppercase tracking-tight">
-              6-MONTH UTILITY EXPENDITURE &amp; SOLAR SAVINGS
-            </h3>
-            <span className="text-xs font-mono text-[#6f7e75]">INVOICE RECONCILIATION</span>
-          </div>
-
-          <div className="bg-[#fbfbfa] border border-[#e2e2d8] p-5">
-            <div className="w-full h-[240px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={MONTHLY_COST_DATA} margin={{ top: 10, right: 15, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="2 2" stroke="#e8e8df" vertical={false} />
-                  <XAxis dataKey="month" stroke="#8e9e94" fontSize={10} tickLine={false} fontFamily="var(--font-mono)" />
-                  <YAxis
-                    stroke="#8e9e94"
-                    fontSize={10}
-                    tickLine={false}
-                    fontFamily="var(--font-mono)"
-                    tickFormatter={(val) => `₹${(val / 100000).toFixed(1)}L`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#101512',
-                      borderColor: '#2a3830',
-                      color: '#fbfbfa',
-                      fontSize: '11px',
-                      fontFamily: 'var(--font-mono)',
-                    }}
-                  />
-                  <Legend
-                    verticalAlign="top"
-                    align="right"
-                    iconType="rect"
-                    wrapperStyle={{ fontSize: '11px', paddingBottom: '10px', fontFamily: 'var(--font-mono)' }}
-                  />
-                  <Bar dataKey="netCost" name="Net Paid Bill" fill="#101512" />
-                  <Bar dataKey="solarSavings" name="Solar Rebate Savings" fill="#059669" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-3 pt-2 border-t border-[#ebebe2] flex items-center justify-between text-xs font-mono text-[#6f7e75]">
-              <span>Cumulative Solar Savings: ₹19.18 Lakhs</span>
-              <span className="text-[#059669] font-bold">23.4% Average Reduction</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================
-          4. INVOICE ARCHIVE & UTILITY LEDGER
-          ======================================================== */}
-      <section className="space-y-4">
-        <div className="pb-2 border-b border-[#e2e2d8]">
-          <h3 className="text-xl font-bold text-[#101512] font-editorial uppercase tracking-tight">
-            DISCOM INVOICE ARCHIVE
-          </h3>
-        </div>
-
-        <div className="border border-[#e2e2d8] divide-y divide-[#e2e2d8] bg-[#fbfbfa] font-mono text-xs">
-          <div className="p-4 bg-[#f5f5ee] font-bold text-[#6f7e75] uppercase text-[10px] grid grid-cols-2 sm:grid-cols-6 gap-4">
-            <div>INVOICE NO</div>
-            <div>PERIOD</div>
-            <div className="text-right">UNITS CONSUMED</div>
-            <div className="text-right">SOLAR CREDIT</div>
-            <div className="text-right">TOTAL BILLED</div>
-            <div className="text-right">ACTION</div>
-          </div>
-
-          {bills.map((bill) => (
-            <div
-              key={bill.id}
-              onClick={() => handleOpenBill(bill)}
-              className="p-4 hover:bg-[#f5f5ee] transition-colors grid grid-cols-2 sm:grid-cols-6 gap-4 items-center cursor-pointer"
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button
+              onClick={() => handleOpenBill(currentBill)}
+              className="px-4 py-2 rounded-md bg-green-700 hover:bg-green-800 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
             >
-              <div className="font-bold text-[#101512]">{bill.invoiceNo}</div>
-              <div className="text-[#525f56]">{bill.billingPeriod}</div>
-              <div className="text-right tabular-nums text-[#101512]">{bill.unitsConsumedKwh.toLocaleString()} kWh</div>
-              <div className="text-right text-[#059669] font-bold tabular-nums">-₹{(bill.solarCreditInr / 1000).toFixed(0)}k</div>
-              <div className="text-right font-extrabold text-[#101512] tabular-nums text-sm">₹{bill.totalAmountInr.toLocaleString()}</div>
-              <div className="text-right">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenBill(bill);
-                  }}
-                  className="px-2.5 py-1 bg-[#101512] hover:bg-[#059669] text-[#fbfbfa] text-[10px] font-bold transition-colors cursor-pointer"
-                >
-                  AUDIT
-                </button>
-              </div>
+              Inspect Line-Item Breakdown
+            </button>
+            <button
+              onClick={() => onDownloadBill(currentBill.invoiceNo)}
+              className="px-3.5 py-2 rounded-md bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold text-xs shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5 text-slate-400" />
+              <span>Export PDF</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Breakdown Items */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 text-xs">
+          <div className="p-3 bg-[#fbfbfa] rounded-md border border-slate-100">
+            <span className="text-[11px] text-slate-500">Base Energy Cost</span>
+            <div className="font-bold text-slate-900 mt-0.5">
+              ₹{currentBill.baseEnergyChargesInr.toLocaleString()}
             </div>
-          ))}
+            <span className="text-[10px] text-slate-400">@ ₹{currentBill.baseRatePerKwh}/kWh</span>
+          </div>
+
+          <div className="p-3 bg-[#fbfbfa] rounded-md border border-slate-100">
+            <span className="text-[11px] text-slate-500">Peak Hour Surcharges</span>
+            <div className="font-bold text-amber-800 mt-0.5">
+              +₹{currentBill.peakHourSurchargesInr.toLocaleString()}
+            </div>
+            <span className="text-[10px] text-amber-700">TOD Tariff window</span>
+          </div>
+
+          <div className="p-3 bg-green-50/50 rounded-md border border-green-200">
+            <span className="text-[11px] text-green-700 font-medium">Solar Net-Metering Credit</span>
+            <div className="font-bold text-green-800 mt-0.5">
+              -₹{currentBill.solarCreditInr.toLocaleString()}
+            </div>
+            <span className="text-[10px] text-green-700">Direct PV offset</span>
+          </div>
+
+          <div className="p-3 bg-[#fbfbfa] rounded-md border border-slate-100">
+            <span className="text-[11px] text-slate-500">Demand Charges &amp; Tax</span>
+            <div className="font-bold text-slate-900 mt-0.5">
+              ₹{(currentBill.fixedDemandChargesInr + currentBill.taxesAndDutiesInr).toLocaleString()}
+            </div>
+            <span className="text-[10px] text-slate-400">Fixed reservation &amp; cess</span>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Spend vs Budget Trajectory Chart */}
+      <section className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs">
+        <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+          <div>
+            <h3 className="text-base font-bold text-slate-900">
+              Monthly Utility Spend vs. Sanctioned Budget Trajectory
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Consolidated 6-month financial trajectory comparing grid expenditure against solar offsets.
+            </p>
+          </div>
+        </div>
+
+        <div className="h-64 sm:h-72 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={MONTHLY_COST_DATA} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#64748b' }} tickLine={false} />
+              <YAxis
+                tick={{ fontSize: 11, fill: '#64748b' }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v) => `₹${v / 1000}k`}
+              />
+              <Tooltip formatter={(value: any) => [`₹${Number(value).toLocaleString()}`, '']} />
+              <Legend verticalAlign="top" align="right" wrapperStyle={{ fontSize: 11, paddingBottom: 8 }} />
+              <Bar dataKey="gridCost" name="Grid Invoiced Cost (₹)" fill="#0284c7" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="solarSavings" name="Solar Offset Credit (₹)" fill="#16a34a" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+
+      {/* 4. Verified Historical Invoices Table */}
+      <section className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs">
+        <h3 className="text-base font-bold text-slate-900 pb-3 mb-4 border-b border-slate-100">
+          Reconciled DISCOM Statement History
+        </h3>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-slate-100 text-slate-500">
+                <th className="pb-2.5 font-bold uppercase text-[10px]">Invoice #</th>
+                <th className="pb-2.5 font-bold uppercase text-[10px]">Period</th>
+                <th className="pb-2.5 font-bold uppercase text-[10px]">Facility</th>
+                <th className="pb-2.5 font-bold uppercase text-[10px]">Net Billed kWh</th>
+                <th className="pb-2.5 font-bold uppercase text-[10px]">Amount</th>
+                <th className="pb-2.5 font-bold uppercase text-[10px]">Audit Status</th>
+                <th className="pb-2.5 font-bold uppercase text-[10px] text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-700">
+              {bills.map((bill) => (
+                <tr key={bill.id} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="py-3 font-bold text-slate-900 font-mono">{bill.invoiceNo}</td>
+                  <td className="py-3 text-slate-600">{bill.billingPeriod}</td>
+                  <td className="py-3 font-medium">{bill.facilityName}</td>
+                  <td className="py-3 tabular-nums">{bill.netBilledUnitsKwh.toLocaleString()}</td>
+                  <td className="py-3 font-bold text-slate-900 tabular-nums">
+                    ₹{bill.totalAmountInr.toLocaleString()}
+                  </td>
+                  <td className="py-3">
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        bill.status === 'Paid'
+                          ? 'bg-green-50 text-green-700 border border-green-200'
+                          : 'bg-amber-50 text-amber-800 border border-amber-200'
+                      }`}
+                    >
+                      {bill.status}
+                    </span>
+                  </td>
+                  <td className="py-3 text-right">
+                    <div className="inline-flex items-center gap-2">
+                      <button
+                        onClick={() => handleOpenBill(bill)}
+                        className="px-2.5 py-1 rounded bg-slate-100 hover:bg-green-50 text-slate-700 hover:text-green-800 font-semibold text-[11px] transition-colors cursor-pointer"
+                      >
+                        Inspect →
+                      </button>
+                      <button
+                        onClick={() => onDownloadBill(bill.invoiceNo)}
+                        className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                        title="Download PDF"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
       {/* View Bill Modal */}
-      {selectedBill && (
-        <ViewBillModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          bill={selectedBill}
-          onDownload={() => onDownloadBill(selectedBill.invoiceNo)}
-          onPay={() => {
+      <ViewBillModal
+        bill={selectedBill}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onDownload={() => selectedBill && onDownloadBill(selectedBill.invoiceNo)}
+        onPay={() => {
+          if (selectedBill) {
             onPayBill(selectedBill.id);
-            setSelectedBill({ ...selectedBill, status: 'Paid' });
-          }}
-        />
-      )}
-    </div>
+            setIsModalOpen(false);
+          }
+        }}
+      />
+    </PlatformShell>
   );
 };

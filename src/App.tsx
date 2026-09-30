@@ -8,9 +8,9 @@ import {
   INITIAL_BILLS,
 } from './data/mockData';
 import { Navbar } from './components/common/Navbar';
-import { Sidebar } from './components/common/Sidebar';
 import { ToastContainer, ToastMessage } from './components/common/Toast';
 import { LoginPage } from './components/pages/LoginPage';
+import { LandingPage } from './components/pages/LandingPage';
 import { DashboardPage } from './components/pages/DashboardPage';
 import { FacilitiesPage } from './components/pages/FacilitiesPage';
 import { FacilityDetailPage } from './components/pages/FacilityDetailPage';
@@ -23,15 +23,13 @@ import { SettingsPage } from './components/pages/SettingsPage';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [activePage, setActivePage] = useState<PageId>('dashboard');
+  const [activePage, setActivePage] = useState<PageId>('landing');
   const [selectedFacilityId, setSelectedFacilityId] = useState<string>('all');
   const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
   const [alerts, setAlerts] = useState<Alert[]>(INITIAL_ALERTS);
   const [recommendations, setRecommendations] = useState<Recommendation[]>(INITIAL_RECOMMENDATIONS);
   const [bills, setBills] = useState<Bill[]>(INITIAL_BILLS);
   const [user, setUser] = useState<UserProfile>(INITIAL_USER);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -138,12 +136,11 @@ export default function App() {
     facilities.find((f) => f.id === selectedFacilityId) || facilities[0];
 
   const unreadAlertCount = alerts.filter((a) => a.status === 'Active').length;
-  const totalMonthlyKwh = facilities.reduce((sum, f) => sum + f.monthlyConsumptionKwh, 0);
 
   // If user is not logged in, or explicitly on 'login' page
   if (!isLoggedIn || activePage === 'login') {
     return (
-      <div className="min-h-screen bg-[#fbfbfa] text-[#101512]">
+      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
         <LoginPage
           onLogin={() => {
             setIsLoggedIn(true);
@@ -157,50 +154,42 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fbfbfa] text-[#101512] flex selection:bg-[#059669]/20 selection:text-[#0c2619]">
-      {/* Sidebar */}
-      <Sidebar
+    <div className="min-h-screen bg-[#fbfbfa] text-slate-900 flex flex-col font-sans selection:bg-green-700 selection:text-white greengrid-pattern">
+      {/* Top Navbar */}
+      <Navbar
+        user={user}
+        facilities={facilities}
+        selectedFacilityId={selectedFacilityId}
+        onSelectFacility={(id) => {
+          setSelectedFacilityId(id);
+          if (id !== 'all') {
+            setActivePage('facility-detail');
+          } else if (activePage === 'facility-detail') {
+            setActivePage('facilities');
+          }
+        }}
         activePage={activePage}
         onNavigate={setActivePage}
+        onLogout={() => {
+          setIsLoggedIn(false);
+          setActivePage('login');
+        }}
         unreadAlertCount={unreadAlertCount}
-        mobileOpen={mobileSidebarOpen}
-        onCloseMobile={() => setMobileSidebarOpen(false)}
-        collapsed={sidebarCollapsed}
-        onToggleCollapsed={() => setSidebarCollapsed((collapsed) => !collapsed)}
-        user={user}
-        totalKwhThisMonth={totalMonthlyKwh}
-        renewablePercentage={34}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
 
-      {/* Main Content Area */}
-      <div className={`flex-1 ${sidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-[264px]'} flex flex-col min-w-0 transition-[padding] duration-200`}>
-        {/* Top Navbar */}
-        <Navbar
-          user={user}
-          facilities={facilities}
-          selectedFacilityId={selectedFacilityId}
-          onSelectFacility={(id) => {
-            setSelectedFacilityId(id);
-            if (id !== 'all') {
-              setActivePage('facility-detail');
-            } else if (activePage === 'facility-detail') {
-              setActivePage('facilities');
-            }
-          }}
-          activePage={activePage}
-          onNavigate={setActivePage}
-          onLogout={() => {
-            setIsLoggedIn(false);
-            setActivePage('login');
-          }}
-          unreadAlertCount={unreadAlertCount}
-          onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
-
-        {/* Page Content Viewport */}
-        <main className="flex-1 p-3 sm:p-5 xl:p-6 max-w-(--breakpoint-2xl) w-full mx-auto">
+      {/* Main Content Viewport: Full-width for Landing, Centered container for Platform tools */}
+      {activePage === 'landing' ? (
+        <main className="flex-1 w-full">
+          <LandingPage
+            onNavigate={setActivePage}
+            onSelectFacilityDetail={handleSelectFacilityDetail}
+            facilities={facilities}
+          />
+        </main>
+      ) : (
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {activePage === 'dashboard' && (
             <DashboardPage
               facilities={facilities}
@@ -218,6 +207,7 @@ export default function App() {
               facilities={facilities}
               onSelectFacilityDetail={handleSelectFacilityDetail}
               onAddFacility={handleAddFacility}
+              onNavigate={setActivePage}
             />
           )}
 
@@ -240,6 +230,7 @@ export default function App() {
               onExport={(format) =>
                 addToast('success', 'Report Exported', `${format} successfully prepared and downloaded.`)
               }
+              onNavigate={setActivePage}
             />
           )}
 
@@ -248,10 +239,11 @@ export default function App() {
               bills={bills}
               onDownloadBill={handleDownloadBill}
               onPayBill={handlePayBill}
+              onNavigate={setActivePage}
             />
           )}
 
-          {activePage === 'renewable' && <RenewableEnergyPage />}
+          {activePage === 'renewable' && <RenewableEnergyPage onNavigate={setActivePage} />}
 
           {activePage === 'alerts' && (
             <AlertsPage
@@ -259,6 +251,7 @@ export default function App() {
               onResolveAlert={handleResolveAlert}
               onAcknowledgeAlert={handleAcknowledgeAlert}
               onTriggerTestAlert={handleTriggerTestAlert}
+              onNavigate={setActivePage}
             />
           )}
 
@@ -266,6 +259,7 @@ export default function App() {
             <RecommendationsPage
               recommendations={recommendations}
               onApplyRecommendation={handleApplyRecommendation}
+              onNavigate={setActivePage}
             />
           )}
 
@@ -283,10 +277,11 @@ export default function App() {
                   'Energy thresholds and alert notification policies updated.'
                 )
               }
+              onNavigate={setActivePage}
             />
           )}
         </main>
-      </div>
+      )}
 
       {/* Global Interactive Notification Toasts */}
       <ToastContainer toasts={toasts} onDismiss={handleDismissToast} />

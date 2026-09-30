@@ -22,53 +22,53 @@ export const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({
 
   const branches: Record<string, { label: string; desc: string; metrics: { k: string; v: string }[] }> = {
     all: {
-      label: 'ENTIRE NETWORK CONVERGENCE',
-      desc: 'Real-time power balancing between 11kV commercial grid incomer, 450 kWp rooftop solar array, and battery buffer',
+      label: 'CONSOLIDATED ENERGY NETWORK',
+      desc: 'Real-time power balancing between 11kV commercial utility grid, 450 kWp rooftop solar, and on-site BESS buffer.',
       metrics: [
-        { k: 'NET DEMAND', v: `${totalDemandKw.toFixed(1)} kW` },
-        { k: 'RENEWABLE RATIO', v: `${renewablePercent}% Clean Offset` },
-        { k: 'GRID DRAW', v: `${gridDrawKw.toFixed(1)} kW` },
-        { k: 'SANCTIONED CAP', v: `${sanctionedLimitKw} kW` },
+        { k: 'Net Demand', v: `${totalDemandKw.toFixed(1)} kW` },
+        { k: 'Renewable Share', v: `${renewablePercent}% Clean Offset` },
+        { k: 'Grid Draw', v: `${gridDrawKw.toFixed(1)} kW` },
+        { k: 'Sanctioned Limit', v: `${sanctionedLimitKw} kW` },
       ],
     },
     grid: {
       label: '11kV COMMERCIAL UTILITY INCOMER',
-      desc: 'High tension feeder lines #01 and #02 from state electricity distribution grid',
+      desc: 'High tension feeder lines #01 and #02 from state electricity distribution grid.',
       metrics: [
-        { k: 'CURRENT DRAW', v: `${gridDrawKw.toFixed(1)} kW` },
-        { k: 'POWER FACTOR', v: '0.94 Lagging' },
-        { k: 'FREQUENCY', v: '50.02 Hz · NOMINAL' },
-        { k: 'TOD TARIFF RATE', v: '₹11.20 / kWh (Peak)' },
+        { k: 'Current Draw', v: `${gridDrawKw.toFixed(1)} kW` },
+        { k: 'Power Factor', v: '0.94 Lagging' },
+        { k: 'Grid Frequency', v: '50.02 Hz · NOMINAL' },
+        { k: 'TOD Tariff Rate', v: '₹11.20 / kWh (Peak)' },
       ],
     },
     solar: {
       label: '450 kWp DISTRIBUTED ROOFTOP SOLAR PV',
-      desc: '12 inverter strings feeding directly into localized 415V secondary switchgear bus',
+      desc: '12 inverter strings feeding directly into localized 415V secondary switchgear bus.',
       metrics: [
-        { k: 'INSTANT PV YIELD', v: `${solarGenKw.toFixed(1)} kW` },
-        { k: 'IRRADIANCE', v: '890 W/m² (Peak)' },
-        { k: 'TODAY HARVEST', v: '1,840 kWh' },
-        { k: 'MPPT EFFICIENCY', v: '94.2% Fleet Avg' },
+        { k: 'Instant PV Yield', v: `${solarGenKw.toFixed(1)} kW` },
+        { k: 'Solar Irradiance', v: '890 W/m²' },
+        { k: 'Today Generated', v: '1,840 kWh' },
+        { k: 'Inverter Efficiency', v: '95.4% Fleet Avg' },
       ],
     },
     battery: {
       label: 'BESS UTILITY BATTERY STORAGE BUFFER',
-      desc: 'Lithium iron phosphate (LFP) 500 kWh storage bank for peak shaving and solar buffering',
+      desc: 'Lithium iron phosphate (LFP) 500 kWh storage bank for peak shaving and solar buffering.',
       metrics: [
-        { k: 'BUFFER DRAW', v: '120.0 kW Discharge' },
-        { k: 'STATE OF CHARGE', v: '92% Remaining' },
-        { k: 'HEALTH CYCLE', v: '99.4% SOH' },
-        { k: 'PEAK BACKUP', v: '4.2 Hours Autonomy' },
+        { k: 'Buffer Output', v: '120.0 kW Discharge' },
+        { k: 'State of Charge', v: '92% Remaining' },
+        { k: 'Health Cycle', v: '99.4% SOH' },
+        { k: 'Peak Autonomy', v: '4.2 Hours' },
       ],
     },
     facilities: {
       label: '5 INDUSTRIAL & COMMERCIAL CAMPUSES',
-      desc: 'Connected facilities: Bangalore, Pune, Gurugram, Chennai, and Hyderabad hubs',
+      desc: 'Monitored sites: Bangalore, Pune, Gurugram, Chennai, and Hyderabad hubs.',
       metrics: [
-        { k: 'TOTAL DRAW', v: `${totalDemandKw.toFixed(1)} kW` },
-        { k: 'LARGEST LOAD', v: 'Pune Plant (685.2 kW)' },
-        { k: 'ACTIVE OVERLOAD', v: 'Gurugram Tower (+7.2%)' },
-        { k: 'MONITORED METERS', v: '42 Submeters Active' },
+        { k: 'Total Demand', v: `${totalDemandKw.toFixed(1)} kW` },
+        { k: 'Largest Load', v: 'Pune Plant (685.2 kW)' },
+        { k: 'Active Overload', v: 'Gurugram Tower (+7.2%)' },
+        { k: 'Submeters', v: '42 Monitored' },
       ],
     },
   };
@@ -76,75 +76,59 @@ export const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({
   const current = branches[activeBranch] || branches.all;
 
   return (
-    <div className="bg-[#ffffff] text-[#101512] rounded-xs border border-[#e2e4dc] p-5 lg:p-7 shadow-xs relative overflow-hidden font-mono">
-      {/* Background technical watermark */}
-      <div className="absolute top-3 right-4 text-[10px] text-[#94a3b8]/60 tracking-[0.2em] uppercase select-none pointer-events-none">
-        FIG 01.1 // LIVE TRANSMISSION CIRCUIT
-      </div>
-
+    <div className="bg-white rounded-lg border border-slate-200 p-5 lg:p-6 shadow-xs">
       {/* Header bar of the network canvas */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#e2e4dc] gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#059669] signal-pulse" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+        <div className="flex items-center gap-2.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-green-500 signal-pulse" />
           <div>
-            <h3 className="text-xs sm:text-sm font-bold tracking-[0.16em] uppercase text-[#101512]">
-              LIVE ENERGY DISTRIBUTION NETWORK
+            <h3 className="text-sm font-bold text-slate-900">
+              Live Energy Distribution
             </h3>
-            <p className="text-[11px] text-[#525f56] font-sans">
-              Dynamic particle flow visualizing physical electricity routing across grid, solar, storage, and loads
+            <p className="text-xs text-slate-500">
+              Real-time power routing across grid, rooftop solar, and on-site storage.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto text-[10px]">
+        <div className="flex items-center gap-1.5 self-start sm:self-auto text-xs font-medium">
           <button
             onClick={() => setActiveBranch('all')}
-            className={`px-3 py-1 rounded-xs cursor-pointer transition-colors ${
+            className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
               activeBranch === 'all'
-                ? 'bg-[#ecfdf5] text-[#047857] border border-[#a7f3d0] font-bold'
-                : 'text-[#64748b] hover:text-[#101512] hover:bg-[#f1f5f9]'
+                ? 'bg-green-50 text-green-700 border border-green-200 font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            ENTIRE GRID
+            Entire Grid
           </button>
           <button
             onClick={() => setActiveBranch('grid')}
-            className={`px-3 py-1 rounded-xs cursor-pointer transition-colors ${
+            className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
               activeBranch === 'grid'
-                ? 'bg-[#e0f2fe] text-[#0369a1] border border-[#bae6fd] font-bold'
-                : 'text-[#64748b] hover:text-[#101512] hover:bg-[#f1f5f9]'
+                ? 'bg-sky-50 text-sky-700 border border-sky-200 font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            GRID INCOMER
+            Utility Grid
           </button>
           <button
             onClick={() => setActiveBranch('solar')}
-            className={`px-3 py-1 rounded-xs cursor-pointer transition-colors ${
+            className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
               activeBranch === 'solar'
-                ? 'bg-[#ecfdf5] text-[#047857] border border-[#a7f3d0] font-bold'
-                : 'text-[#64748b] hover:text-[#101512] hover:bg-[#f1f5f9]'
+                ? 'bg-green-50 text-green-700 border border-green-200 font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            SOLAR PV
+            Solar PV
           </button>
         </div>
       </div>
 
       {/* SVG Living Energy Flow Canvas */}
-      <div className="w-full overflow-x-auto py-4">
+      <div className="w-full min-w-0 max-w-full overflow-x-auto py-3">
         <div className="min-w-[760px] lg:min-w-0">
           <svg viewBox="0 0 940 330" className="w-full h-auto select-none" style={{ maxHeight: '350px' }}>
-            <defs>
-              <linearGradient id="solarFlowGradLight" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#10b981" />
-                <stop offset="100%" stopColor="#059669" />
-              </linearGradient>
-              <linearGradient id="gridFlowGradLight" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#0284c7" />
-                <stop offset="100%" stopColor="#0369a1" />
-              </linearGradient>
-            </defs>
-
             {/* Architectural Grid Underlay */}
             <g stroke="#f1f5f9" strokeWidth="1">
               <line x1="0" y1="70" x2="940" y2="70" />
@@ -166,58 +150,36 @@ export const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({
               strokeWidth="2.5"
               className="animate-flow-dash"
             />
-            {/* Particle on Grid Path */}
-            <circle r="3.5" fill="#0284c7">
-              <animateMotion dur="2.2s" repeatCount="indefinite">
-                <mpath href="#gridPath" />
-              </animateMotion>
-            </circle>
 
             {/* Path 2: SOLAR PV -> BUS */}
             <path
               id="solarPath"
               d="M 180 165 L 420 165"
               fill="none"
-              stroke="#059669"
+              stroke="#16a34a"
               strokeWidth="3"
               className="animate-flow-dash-slow"
             />
-            {/* Particle on Solar Path */}
-            <circle r="4" fill="#10b981">
-              <animateMotion dur="1.8s" repeatCount="indefinite">
-                <mpath href="#solarPath" />
-              </animateMotion>
-            </circle>
 
             {/* Path 3: BATTERY STORAGE -> BUS */}
             <path
               id="batteryPath"
               d="M 180 260 L 340 260 L 420 165"
               fill="none"
-              stroke="#059669"
+              stroke="#16a34a"
               strokeWidth="2"
               strokeDasharray="4 4"
             />
-            <circle r="3" fill="#059669">
-              <animateMotion dur="2.8s" repeatCount="indefinite">
-                <mpath href="#batteryPath" />
-              </animateMotion>
-            </circle>
 
             {/* Path 4: BUS -> FACILITIES CONVERGENCE */}
             <path
               id="busToFacilities1"
               d="M 520 165 L 600 165 L 660 60 L 740 60"
               fill="none"
-              stroke="#059669"
+              stroke="#16a34a"
               strokeWidth="2"
               className="animate-flow-dash"
             />
-            <circle r="3" fill="#10b981">
-              <animateMotion dur="2s" repeatCount="indefinite">
-                <mpath href="#busToFacilities1" />
-              </animateMotion>
-            </circle>
 
             <path
               id="busToFacilities2"
@@ -227,25 +189,15 @@ export const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({
               strokeWidth="2.5"
               className="animate-flow-dash"
             />
-            <circle r="3.5" fill="#f59e0b">
-              <animateMotion dur="1.4s" repeatCount="indefinite">
-                <mpath href="#busToFacilities2" />
-              </animateMotion>
-            </circle>
 
             <path
               id="busToFacilities3"
               d="M 520 165 L 600 165 L 660 270 L 740 270"
               fill="none"
-              stroke="#059669"
+              stroke="#16a34a"
               strokeWidth="2"
               className="animate-flow-dash"
             />
-            <circle r="3" fill="#10b981">
-              <animateMotion dur="2.4s" repeatCount="indefinite">
-                <mpath href="#busToFacilities3" />
-              </animateMotion>
-            </circle>
 
             {/* NODES */}
 
@@ -262,18 +214,18 @@ export const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({
                 y="30"
                 width="160"
                 height="80"
-                rx="2"
+                rx="6"
                 fill="#ffffff"
-                stroke={activeBranch === 'grid' ? '#0284c7' : '#cbd5e1'}
+                stroke={activeBranch === 'grid' ? '#0284c7' : '#e2e8f0'}
                 strokeWidth={activeBranch === 'grid' ? '2' : '1'}
               />
-              <text x="35" y="55" fill="#64748b" fontSize="9.5" letterSpacing="1.2">
+              <text x="35" y="55" fill="#64748b" fontSize="10" fontWeight="600" fontFamily="Arial, sans-serif">
                 UTILITY GRID INCOMER
               </text>
-              <text x="35" y="78" fill="#101512" fontSize="17" fontWeight="bold">
-                {gridDrawKw.toFixed(0)} <tspan fontSize="11" fill="#64748b">kW</tspan>
+              <text x="35" y="78" fill="#0f172a" fontSize="18" fontWeight="bold" fontFamily="Arial, sans-serif">
+                {gridDrawKw.toFixed(0)} <tspan fontSize="12" fill="#64748b" fontWeight="normal">kW</tspan>
               </text>
-              <text x="35" y="96" fill="#0284c7" fontSize="9" fontWeight="bold">
+              <text x="35" y="96" fill="#0284c7" fontSize="10" fontWeight="600" fontFamily="Arial, sans-serif">
                 11kV FEEDER · 73.7% LOAD
               </text>
             </g>
@@ -291,18 +243,18 @@ export const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({
                 y="125"
                 width="160"
                 height="80"
-                rx="2"
+                rx="6"
                 fill="#ffffff"
-                stroke={activeBranch === 'solar' ? '#059669' : '#cbd5e1'}
+                stroke={activeBranch === 'solar' ? '#16a34a' : '#e2e8f0'}
                 strokeWidth={activeBranch === 'solar' ? '2' : '1'}
               />
-              <text x="35" y="150" fill="#64748b" fontSize="9.5" letterSpacing="1.2">
+              <text x="35" y="150" fill="#64748b" fontSize="10" fontWeight="600" fontFamily="Arial, sans-serif">
                 ROOFTOP SOLAR PV
               </text>
-              <text x="35" y="173" fill="#059669" fontSize="17" fontWeight="bold">
-                {solarGenKw.toFixed(0)} <tspan fontSize="11" fill="#64748b">kW</tspan>
+              <text x="35" y="173" fill="#16a34a" fontSize="18" fontWeight="bold" fontFamily="Arial, sans-serif">
+                {solarGenKw.toFixed(0)} <tspan fontSize="12" fill="#64748b" fontWeight="normal">kW</tspan>
               </text>
-              <text x="35" y="191" fill="#059669" fontSize="9" fontWeight="bold">
+              <text x="35" y="191" fill="#16a34a" fontSize="10" fontWeight="600" fontFamily="Arial, sans-serif">
                 450 kWp PERC · 34.2% SHARE
               </text>
             </g>
@@ -320,18 +272,18 @@ export const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({
                 y="220"
                 width="160"
                 height="80"
-                rx="2"
+                rx="6"
                 fill="#ffffff"
-                stroke={activeBranch === 'battery' ? '#059669' : '#cbd5e1'}
+                stroke={activeBranch === 'battery' ? '#16a34a' : '#e2e8f0'}
                 strokeWidth={activeBranch === 'battery' ? '2' : '1'}
               />
-              <text x="35" y="245" fill="#64748b" fontSize="9.5" letterSpacing="1.2">
+              <text x="35" y="245" fill="#64748b" fontSize="10" fontWeight="600" fontFamily="Arial, sans-serif">
                 BESS BATTERY STORAGE
               </text>
-              <text x="35" y="268" fill="#101512" fontSize="17" fontWeight="bold">
-                120 <tspan fontSize="11" fill="#64748b">kW</tspan>
+              <text x="35" y="268" fill="#0f172a" fontSize="18" fontWeight="bold" fontFamily="Arial, sans-serif">
+                120 <tspan fontSize="12" fill="#64748b" fontWeight="normal">kW</tspan>
               </text>
-              <text x="35" y="286" fill="#059669" fontSize="9" fontWeight="bold">
+              <text x="35" y="286" fill="#16a34a" fontSize="10" fontWeight="600" fontFamily="Arial, sans-serif">
                 500 kWh LFP · 92% SOC
               </text>
             </g>
@@ -349,20 +301,20 @@ export const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({
                 y="110"
                 width="110"
                 height="110"
-                rx="2"
+                rx="8"
                 fill="#f8fafc"
-                stroke={activeBranch === 'all' ? '#059669' : '#94a3b8'}
+                stroke={activeBranch === 'all' ? '#16a34a' : '#cbd5e1'}
                 strokeWidth="2"
               />
-              <circle cx="465" cy="142" r="14" fill="#ecfdf5" stroke="#059669" strokeWidth="1.5" />
-              <Zap x="458" y="135" width="14" height="14" color="#059669" />
-              <text x="465" y="176" textAnchor="middle" fill="#64748b" fontSize="8.5" letterSpacing="1" fontWeight="bold">
+              <circle cx="465" cy="142" r="14" fill="#dcfce7" stroke="#16a34a" strokeWidth="1.5" />
+              <Zap x="458" y="135" width="14" height="14" color="#16a34a" />
+              <text x="465" y="176" textAnchor="middle" fill="#64748b" fontSize="9" fontWeight="bold" fontFamily="Arial, sans-serif">
                 MAIN BUS
               </text>
-              <text x="465" y="196" textAnchor="middle" fill="#101512" fontSize="15" fontWeight="bold">
-                {totalDemandKw.toFixed(0)} <tspan fontSize="9" fill="#64748b">kW</tspan>
+              <text x="465" y="196" textAnchor="middle" fill="#0f172a" fontSize="16" fontWeight="bold" fontFamily="Arial, sans-serif">
+                {totalDemandKw.toFixed(0)} <tspan fontSize="10" fill="#64748b" fontWeight="normal">kW</tspan>
               </text>
-              <text x="465" y="210" textAnchor="middle" fill="#059669" fontSize="8.5" fontWeight="bold">
+              <text x="465" y="210" textAnchor="middle" fill="#16a34a" fontSize="9" fontWeight="bold" fontFamily="Arial, sans-serif">
                 BALANCED
               </text>
             </g>
@@ -382,18 +334,18 @@ export const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({
                 y="20"
                 width="180"
                 height="80"
-                rx="2"
+                rx="6"
                 fill="#ffffff"
-                stroke="#cbd5e1"
+                stroke="#e2e8f0"
                 strokeWidth="1"
               />
-              <text x="755" y="45" fill="#64748b" fontSize="9" letterSpacing="1">
-                01 COMMERCIAL CAMPUSES
+              <text x="755" y="45" fill="#64748b" fontSize="10" fontWeight="600" fontFamily="Arial, sans-serif">
+                COMMERCIAL CAMPUSES
               </text>
-              <text x="755" y="68" fill="#101512" fontSize="16" fontWeight="bold">
-                674.6 <tspan fontSize="11" fill="#64748b">kW</tspan>
+              <text x="755" y="68" fill="#0f172a" fontSize="17" fontWeight="bold" fontFamily="Arial, sans-serif">
+                674.6 <tspan fontSize="11" fill="#64748b" fontWeight="normal">kW</tspan>
               </text>
-              <text x="755" y="86" fill="#059669" fontSize="9" fontWeight="bold">
+              <text x="755" y="86" fill="#16a34a" fontSize="10" fontWeight="600" fontFamily="Arial, sans-serif">
                 BANGALORE + HYDERABAD
               </text>
             </g>
@@ -411,18 +363,18 @@ export const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({
                 y="125"
                 width="180"
                 height="80"
-                rx="2"
+                rx="6"
                 fill="#ffffff"
                 stroke="#d97706"
                 strokeWidth="1.5"
               />
-              <text x="755" y="150" fill="#64748b" fontSize="9" letterSpacing="1">
-                02 HEAVY MANUFACTURING
+              <text x="755" y="150" fill="#64748b" fontSize="10" fontWeight="600" fontFamily="Arial, sans-serif">
+                HEAVY MANUFACTURING
               </text>
-              <text x="755" y="173" fill="#d97706" fontSize="16" fontWeight="bold">
-                685.2 <tspan fontSize="11" fill="#64748b">kW</tspan>
+              <text x="755" y="173" fill="#d97706" fontSize="17" fontWeight="bold" fontFamily="Arial, sans-serif">
+                685.2 <tspan fontSize="11" fill="#64748b" fontWeight="normal">kW</tspan>
               </text>
-              <text x="755" y="191" fill="#d97706" fontSize="9" fontWeight="bold">
+              <text x="755" y="191" fill="#d97706" fontSize="10" fontWeight="600" fontFamily="Arial, sans-serif">
                 PUNE PLANT · 105% CAP WARNING
               </text>
             </g>
@@ -440,18 +392,18 @@ export const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({
                 y="230"
                 width="180"
                 height="80"
-                rx="2"
+                rx="6"
                 fill="#ffffff"
                 stroke="#e11d48"
                 strokeWidth="1.5"
               />
-              <text x="755" y="255" fill="#64748b" fontSize="9" letterSpacing="1">
-                03 GURUGRAM + CHENNAI
+              <text x="755" y="255" fill="#64748b" fontSize="10" fontWeight="600" fontFamily="Arial, sans-serif">
+                GURUGRAM + CHENNAI
               </text>
-              <text x="755" y="278" fill="#e11d48" fontSize="16" fontWeight="bold">
-                506.2 <tspan fontSize="11" fill="#64748b">kW</tspan>
+              <text x="755" y="278" fill="#e11d48" fontSize="17" fontWeight="bold" fontFamily="Arial, sans-serif">
+                506.2 <tspan fontSize="11" fill="#64748b" fontWeight="normal">kW</tspan>
               </text>
-              <text x="755" y="296" fill="#e11d48" fontSize="9" fontWeight="bold">
+              <text x="755" y="296" fill="#e11d48" fontSize="10" fontWeight="600" fontFamily="Arial, sans-serif">
                 GURUGRAM BREACH (+7.2%)
               </text>
             </g>
@@ -460,22 +412,22 @@ export const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({
       </div>
 
       {/* Selected Branch Inspection Telemetry Ribbon */}
-      <div className="mt-2 pt-3 border-t border-[#e2e4dc] bg-[#f8fafc] p-3 rounded-xs flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+      <div className="mt-2 pt-3 border-t border-slate-100 bg-slate-50 p-3.5 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="text-[#059669] font-bold text-[11px] uppercase tracking-wider">
+          <span className="text-green-700 font-bold text-xs uppercase tracking-normal">
             {current.label}
           </span>
-          <span className="text-[#cbd5e1] hidden sm:inline">|</span>
-          <span className="text-[11px] text-[#525f56] font-sans truncate">
+          <span className="text-slate-300 hidden sm:inline">|</span>
+          <span className="text-xs text-slate-600 truncate">
             {current.desc}
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-[11px] text-[#101512] shrink-0">
+        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-800 shrink-0">
           {current.metrics.map((m, idx) => (
             <div key={idx} className="flex items-center gap-1.5">
-              <span className="text-[#64748b]">{m.k}:</span>
-              <span className="text-[#101512] font-bold">{m.v}</span>
+              <span className="text-slate-500">{m.k}:</span>
+              <span className="font-semibold text-slate-900">{m.v}</span>
             </div>
           ))}
         </div>

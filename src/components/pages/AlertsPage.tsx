@@ -9,22 +9,17 @@ import {
   Building2,
   Zap,
   ArrowRight,
-  Eye,
-  Radio,
-  Sliders,
-  Filter,
-  RefreshCw,
   BellRing,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react';
-import { Alert, AlertSeverity, AlertStatus } from '../../types';
+import { Alert, AlertSeverity, AlertStatus, PageId } from '../../types';
+import { PlatformShell } from '../common/PlatformShell';
 
 interface AlertsPageProps {
   alerts: Alert[];
   onResolveAlert: (id: string) => void;
   onAcknowledgeAlert: (id: string) => void;
   onTriggerTestAlert: () => void;
+  onNavigate?: (page: PageId) => void;
 }
 
 export const AlertsPage: React.FC<AlertsPageProps> = ({
@@ -32,11 +27,11 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
   onResolveAlert,
   onAcknowledgeAlert,
   onTriggerTestAlert,
+  onNavigate = () => {},
 }) => {
   const [severityFilter, setSeverityFilter] = useState<'All' | AlertSeverity>('All');
   const [statusFilter, setStatusFilter] = useState<'All' | AlertStatus>('All');
   const [search, setSearch] = useState('');
-  const [investigatingAlertId, setInvestigatingAlertId] = useState<string | null>(null);
 
   // Summary counts
   const totalActive = alerts.filter((a) => a.status === 'Active').length;
@@ -60,261 +55,207 @@ export const AlertsPage: React.FC<AlertsPageProps> = ({
   });
 
   return (
-    <div className="space-y-10 pb-16">
-      {/* ========================================================
-          1. EDITORIAL HEADER & INCIDENT METRICS
-          ======================================================== */}
-      <section className="pt-2">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[#e2e2d8]">
-          <div className="space-y-2">
-            <div className="text-[11px] font-mono tracking-[0.22em] text-[#059669] uppercase font-semibold">
-              OPERATIONAL LOG // INCIDENT DISPATCH
-            </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#101512] tracking-tight leading-[1.08] font-editorial">
-              GRID INCIDENTS &amp;<br />
-              <span className="text-[#059669]">OPERATIONS LOG</span>
-            </h1>
-            <p className="text-sm sm:text-base text-[#525f56] font-sans max-w-xl">
-              Chronological audit log of contract demand ceiling breaches, solar inverter anomalies, and automated setpoint interventions.
-            </p>
-          </div>
-
-          <button
-            onClick={onTriggerTestAlert}
-            className="px-4 py-2 bg-[#101512] hover:bg-[#059669] text-[#fbfbfa] text-xs font-mono font-bold tracking-wider transition-colors flex items-center gap-2 cursor-pointer shadow-sm self-start sm:self-auto"
-          >
-            <BellRing className="w-3.5 h-3.5 text-amber-400" />
-            <span>SIMULATE TELEMETRY EVENT</span>
-          </button>
-        </div>
-
-        {/* Operational Incident Strip */}
-        <div className="mt-6 border border-[#dcdcd2] bg-[#f5f5ee] divide-y md:divide-y-0 md:divide-x divide-[#dcdcd2] grid grid-cols-2 md:grid-cols-4 font-mono">
-          <div className="p-4 sm:p-5">
-            <span className="text-[10px] uppercase tracking-[0.16em] text-[#6f7e75] block">ACTIVE INCIDENTS</span>
-            <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#101512] tabular-nums">
+    <PlatformShell
+      pageTitle="Telemetry Alerts & Incident Dispatch"
+      pageCategory="Operational Incidents"
+      pageDescription="Continuous algorithmic surveillance monitoring inrush current spikes, power factor degradation, and contract demand threshold breaches."
+      onNavigate={onNavigate}
+      actions={
+        <button
+          onClick={onTriggerTestAlert}
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+        >
+          <BellRing className="w-3.5 h-3.5 text-amber-600" />
+          <span>Simulate Telemetry Spike</span>
+        </button>
+      }
+    >
+      {/* 1. Overview Incident Summary Control Bar */}
+      <section className="bg-white border border-slate-200 rounded-lg p-5 shadow-xs">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+          <div className="pt-2 md:pt-0 md:px-3">
+            <div className="text-xs text-slate-500 font-medium">Pending Unresolved</div>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl sm:text-3xl font-bold text-slate-900">
                 {totalActive}
               </span>
-              <span className="text-xs text-[#6f7e75]">EVENTS</span>
+              <span className="text-xs font-bold text-slate-500">Active</span>
             </div>
-            <span className="text-[11px] text-[#059669] mt-1 block">Live submeter watchdog</span>
+            <span className="text-[11px] text-amber-700 font-medium block mt-1">
+              Requires engineer verification
+            </span>
           </div>
 
-          <div className="p-4 sm:p-5">
-            <span className="text-[10px] uppercase tracking-[0.16em] text-[#6f7e75] block">CRITICAL OVERLOADS</span>
-            <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold text-rose-600 tabular-nums">
+          <div className="pt-2 md:pt-0 md:px-3">
+            <div className="text-xs text-slate-500 font-medium">Critical Breaches</div>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl sm:text-3xl font-bold text-rose-600">
                 {criticalCount}
               </span>
-              <span className="text-xs text-rose-600 font-bold">BREACH</span>
             </div>
-            <span className="text-[11px] text-rose-600 mt-1 block">Sanctioned cap exceeded</span>
+            <span className="text-[11px] text-rose-600 font-medium block mt-1">
+              Immediate trip hazard
+            </span>
           </div>
 
-          <div className="p-4 sm:p-5">
-            <span className="text-[10px] uppercase tracking-[0.16em] text-[#6f7e75] block">HIGH USAGE WARNINGS</span>
-            <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold text-amber-600 tabular-nums">
+          <div className="pt-2 md:pt-0 md:px-3">
+            <div className="text-xs text-slate-500 font-medium">Elevated Warnings</div>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl sm:text-3xl font-bold text-amber-600">
                 {warningCount}
               </span>
-              <span className="text-xs text-amber-600 font-bold">WARN</span>
             </div>
-            <span className="text-[11px] text-[#6f7e75] mt-1 block">Approaching peak threshold</span>
+            <span className="text-[11px] text-amber-700 font-medium block mt-1">
+              Monitored parameter drift
+            </span>
           </div>
 
-          <div className="p-4 sm:p-5">
-            <span className="text-[10px] uppercase tracking-[0.16em] text-[#6f7e75] block">RESOLVED THIS MONTH</span>
-            <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#059669] tabular-nums">
+          <div className="pt-2 md:pt-0 md:px-3">
+            <div className="text-xs text-slate-500 font-medium">Resolved This Cycle</div>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-2xl sm:text-3xl font-bold text-green-700">
                 {resolvedCount}
               </span>
-              <span className="text-xs text-[#059669]">RESOLVED</span>
+              <span className="text-xs font-bold text-slate-500">Closed</span>
             </div>
-            <span className="text-[11px] text-[#059669] mt-1 block">Mean time to resolve: 24m</span>
+            <span className="text-[11px] text-green-700 font-semibold block mt-1">
+              ✓ Normal baseline restored
+            </span>
           </div>
         </div>
       </section>
 
-      {/* ========================================================
-          2. FILTER & SEARCH CONTROL CONSOLE
-          ======================================================== */}
-      <section className="space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-[#e2e2d8]">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1 bg-[#ebebe2] p-0.5 border border-[#d6d6cb] font-mono text-xs">
-              {(['All', 'Critical', 'Warning', 'Info'] as const).map((sev) => (
-                <button
-                  key={sev}
-                  onClick={() => setSeverityFilter(sev)}
-                  className={`px-3 py-1 cursor-pointer transition-colors ${
-                    severityFilter === sev
-                      ? 'bg-[#101512] text-[#fbfbfa] font-bold'
-                      : 'text-[#525f56] hover:text-[#101512]'
-                  }`}
-                >
-                  {sev.toUpperCase()}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-1 bg-[#ebebe2] p-0.5 border border-[#d6d6cb] font-mono text-xs">
-              {(['All', 'Active', 'Acknowledged', 'Resolved'] as const).map((st) => (
-                <button
-                  key={st}
-                  onClick={() => setStatusFilter(st)}
-                  className={`px-3 py-1 cursor-pointer transition-colors ${
-                    statusFilter === st
-                      ? 'bg-[#101512] text-[#fbfbfa] font-bold'
-                      : 'text-[#525f56] hover:text-[#101512]'
-                  }`}
-                >
-                  {st.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Search Box */}
-          <div className="relative w-full max-w-xs font-mono text-xs">
-            <Search className="w-3.5 h-3.5 text-[#6f7e75] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search event, campus, metric..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#fbfbfa] border border-[#dcdcd2] pl-8 pr-3 py-1.5 text-[#101512] placeholder:text-[#8e9e94] focus:outline-hidden focus:border-[#059669]"
-            />
-          </div>
+      {/* 2. Filter & Search Toolbar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Search */}
+        <div className="relative flex-1 max-w-md">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search alerts by incident title, campus, or metric..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-slate-200 rounded-md focus:border-green-600 focus:outline-hidden transition-colors"
+          />
         </div>
 
-        {/* ========================================================
-            3. THE OPERATIONAL TIMELINE (Clean Editorial Operations Log)
-            ======================================================== */}
-        <div className="border border-[#e2e2d8] divide-y divide-[#e2e2d8] bg-[#fbfbfa] font-mono">
-          {filteredAlerts.length === 0 ? (
-            <div className="p-8 text-center text-xs text-[#6f7e75]">
-              No incident entries matching current filters.
-            </div>
-          ) : (
-            filteredAlerts.map((alert) => {
-              const isResolved = alert.status === 'Resolved';
-              const isCritical = alert.severity === 'Critical';
-              const isWarning = alert.severity === 'Warning';
-              const isInvestigating = investigatingAlertId === alert.id;
+        {/* Severity Pills */}
+        <div className="inline-flex rounded-md border border-slate-200 p-0.5 bg-white shadow-xs">
+          {(['All', 'Critical', 'Warning', 'Info'] as const).map((sev) => (
+            <button
+              key={sev}
+              onClick={() => setSeverityFilter(sev)}
+              className={`px-3 py-1 text-xs font-semibold rounded cursor-pointer transition-colors ${
+                severityFilter === sev
+                  ? 'bg-green-700 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              {sev}
+            </button>
+          ))}
+        </div>
+      </div>
 
-              return (
-                <div
-                  key={alert.id}
-                  className="p-5 sm:p-6 hover:bg-[#f5f5ee] transition-all"
-                >
-                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                    {/* Time Stamp & Severity Dot */}
-                    <div className="flex items-center gap-3 min-w-[200px] shrink-0">
-                      <span className="text-base font-bold text-[#101512] tabular-nums">
-                        {alert.timestamp.split(' ')[1] || alert.timestamp}
-                      </span>
-                      <span
-                        className={`w-2 h-2 rounded-full ${
-                          isResolved
-                            ? 'bg-[#8e9e94]'
-                            : isCritical
-                            ? 'bg-rose-600 signal-pulse'
-                            : 'bg-amber-500'
-                        }`}
-                      />
-                      <span
-                        className={`text-xs font-extrabold uppercase tracking-wider ${
-                          isResolved
-                            ? 'text-[#8e9e94]'
-                            : isCritical
-                            ? 'text-rose-600'
-                            : 'text-amber-600'
-                        }`}
-                      >
-                        {isResolved ? 'RESOLVED' : alert.severity.toUpperCase()}
-                      </span>
-                    </div>
+      {/* 3. Incidents Feed */}
+      <div className="space-y-3.5">
+        {filteredAlerts.map((alert) => {
+          const isCritical = alert.severity === 'Critical';
+          const isWarning = alert.severity === 'Warning';
+          const isResolved = alert.status === 'Resolved';
 
-                    {/* Facility & Incident Details */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm sm:text-base font-bold text-[#101512] font-sans">
-                          {alert.facilityName}
-                        </span>
-                        <span className="text-xs text-[#6f7e75]">·</span>
-                        <span className="text-xs text-[#525f56] font-sans font-semibold">
-                          {alert.title}
-                        </span>
-                      </div>
+          return (
+            <div
+              key={alert.id}
+              className={`p-4 sm:p-5 rounded-lg border transition-all bg-white shadow-xs ${
+                isResolved
+                  ? 'border-slate-200 opacity-75'
+                  : isCritical
+                  ? 'border-rose-300 ring-1 ring-rose-100'
+                  : 'border-amber-300'
+              }`}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        isCritical
+                          ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                          : isWarning
+                          ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                          : 'bg-sky-50 text-sky-700 border border-sky-200'
+                      }`}
+                    >
+                      {alert.severity}
+                    </span>
 
-                      <p className="mt-1 text-xs text-[#525f56] font-sans leading-relaxed">
-                        {alert.description}
-                      </p>
-
-                      <div className="mt-3 flex flex-wrap items-center gap-6 text-xs text-[#6f7e75]">
-                        <div>
-                          <span className="text-[10px] uppercase block">RECORDED TELEMETRY</span>
-                          <span className={`font-bold tabular-nums ${isCritical && !isResolved ? 'text-rose-600' : 'text-[#101512]'}`}>
-                            {alert.currentValue}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase block">CONTRACT THRESHOLD</span>
-                          <span className="tabular-nums font-semibold text-[#101512]">{alert.thresholdValue}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase block">METRIC DOMAIN</span>
-                          <span className="font-semibold text-[#101512]">{alert.metric}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action Controls */}
-                    <div className="flex items-center gap-3 shrink-0 self-end lg:self-start">
-                      <button
-                        onClick={() =>
-                          setInvestigatingAlertId(isInvestigating ? null : alert.id)
-                        }
-                        className="px-3 py-1.5 border border-[#dcdcd2] hover:border-[#101512] text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
-                      >
-                        <span>{isInvestigating ? 'CLOSE' : 'INVESTIGATE'}</span>
-                        {isInvestigating ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                      </button>
-
-                      {!isResolved && (
-                        <button
-                          onClick={() => onResolveAlert(alert.id)}
-                          className="px-3.5 py-1.5 bg-[#059669] hover:bg-[#047857] text-white text-xs font-bold transition-colors cursor-pointer shadow-xs"
-                        >
-                          RESOLVE INCIDENT
-                        </button>
-                      )}
-                    </div>
+                    <span className="text-xs font-bold text-slate-900">{alert.facilityName}</span>
+                    <span className="text-slate-300">·</span>
+                    <span className="text-xs text-slate-400 font-mono">{alert.timestamp}</span>
                   </div>
 
-                  {/* Investigation Briefing Drawer */}
-                  {isInvestigating && (
-                    <div className="mt-4 pt-4 border-t border-[#e2e2d8] bg-[#f5f5ee] p-4 text-xs font-sans space-y-2">
-                      <div className="font-mono text-[11px] font-bold text-[#059669] uppercase tracking-wider">
-                        ROOT-CAUSE ANALYSIS // RECOMMENDED ACTION:
-                      </div>
-                      <p className="text-[#525f56] leading-relaxed">
-                        {isCritical
-                          ? 'Simultaneous startup of secondary chiller banks coincided with regional state grid peak-pricing window. To mitigate DISCOM low power factor penalties and peak demand surcharges, throttle VFD setpoint by 15% or enable chiller soft-staging sequence.'
-                          : 'Telemetry readings deviate by 28% from 30-day baseline for ambient temperature. Recommended action: schedule technician inspection or activate automated BMS demand limiter.'}
-                      </p>
-                      <div className="font-mono text-[10px] text-[#6f7e75] pt-1">
-                        Dispatch Protocol: BACnet/IP automated setpoint floating ready
-                      </div>
-                    </div>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 mt-1">
+                    {alert.title}
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed max-w-3xl">
+                    {alert.description}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0">
+                  {!isResolved && (
+                    <>
+                      {alert.status !== 'Acknowledged' && (
+                        <button
+                          onClick={() => onAcknowledgeAlert(alert.id)}
+                          className="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+                        >
+                          Acknowledge
+                        </button>
+                      )}
+                      <button
+                        onClick={() => onResolveAlert(alert.id)}
+                        className="px-3.5 py-1.5 rounded-md bg-green-700 hover:bg-green-800 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                      >
+                        Mark Resolved
+                      </button>
+                    </>
+                  )}
+                  {isResolved && (
+                    <span className="text-xs font-semibold text-green-700 bg-green-50 px-2.5 py-1 rounded border border-green-200 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Verified Resolved</span>
+                    </span>
                   )}
                 </div>
-              );
-            })
-          )}
-        </div>
-      </section>
-    </div>
+              </div>
+
+              {/* Value vs Threshold Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-600">
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                    Observed Reading
+                  </span>
+                  <span className="font-bold text-slate-900 font-mono">{alert.currentValue}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                    Threshold Limit
+                  </span>
+                  <span className="font-mono text-slate-600">{alert.thresholdValue}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                    Monitored Metric
+                  </span>
+                  <span>{alert.metric}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </PlatformShell>
   );
 };

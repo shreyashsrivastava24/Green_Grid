@@ -52,32 +52,32 @@ export const AddFacilityModal: React.FC<AddFacilityModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="ENROLL NEW FACILITY NODE"
-      subtitle="Connect IoT telemetry submeters, rooftop solar arrays, and peak demand limiters"
+      title="Enroll New Facility"
+      subtitle="Connect IoT telemetry submeters, rooftop solar arrays, and peak demand limiters."
       maxWidth="lg"
       footer={
         <>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-mono font-bold text-[#6f7e75] hover:text-[#101512] transition-colors cursor-pointer"
+            className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
           >
-            CANCEL
+            Cancel
           </button>
           <button
             type="button"
             onClick={handleSubmit}
-            className="px-5 py-2 text-xs font-mono font-bold text-white bg-[#059669] hover:bg-[#047857] transition-colors cursor-pointer shadow-sm"
+            className="px-4 py-2 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors cursor-pointer shadow-xs"
           >
-            PROVISION FACILITY
+            Provision Facility
           </button>
         </>
       }
     >
-      <form className="space-y-4 font-mono text-xs" onSubmit={handleSubmit}>
+      <form className="space-y-4 text-xs" onSubmit={handleSubmit}>
         <div>
-          <label className="block text-[#6f7e75] mb-1 font-bold uppercase text-[10px]">
-            FACILITY CAMPUS NAME
+          <label className="block text-slate-700 font-semibold mb-1">
+            Facility Campus Name
           </label>
           <input
             type="text"
@@ -85,14 +85,14 @@ export const AddFacilityModal: React.FC<AddFacilityModalProps> = ({
             placeholder="e.g. Mumbai Financial Center Tower C"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full bg-[#fbfbfa] border border-[#dcdcd2] px-3 py-2 text-[#101512] placeholder-[#8e9e94] focus:border-[#059669] focus:outline-hidden"
+            className="w-full bg-white border border-slate-200 rounded-md px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-green-600 focus:outline-hidden focus:ring-1 focus:ring-green-600 transition-colors"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-[#6f7e75] mb-1 font-bold uppercase text-[10px]">
-              GEOGRAPHIC LOCATION
+            <label className="block text-slate-700 font-semibold mb-1">
+              Geographic Location
             </label>
             <input
               type="text"
@@ -100,18 +100,18 @@ export const AddFacilityModal: React.FC<AddFacilityModalProps> = ({
               placeholder="e.g. Bandra Kurla Complex, Mumbai"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full bg-[#fbfbfa] border border-[#dcdcd2] px-3 py-2 text-[#101512] placeholder-[#8e9e94] focus:border-[#059669] focus:outline-hidden"
+              className="w-full bg-white border border-slate-200 rounded-md px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-green-600 focus:outline-hidden focus:ring-1 focus:ring-green-600 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-[#6f7e75] mb-1 font-bold uppercase text-[10px]">
-              FACILITY TYPOLOGY
+            <label className="block text-slate-700 font-semibold mb-1">
+              Facility Typology
             </label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full bg-[#fbfbfa] border border-[#dcdcd2] px-3 py-2 text-[#101512] focus:border-[#059669] focus:outline-hidden cursor-pointer"
+              className="w-full bg-white border border-slate-200 rounded-md px-3 py-2 text-slate-900 focus:border-green-600 focus:outline-hidden focus:ring-1 focus:ring-green-600 transition-colors cursor-pointer"
             >
               <option value="Commercial Tech Campus">Commercial Tech Campus</option>
               <option value="Heavy Manufacturing Plant">Heavy Manufacturing Plant</option>
@@ -124,8 +124,8 @@ export const AddFacilityModal: React.FC<AddFacilityModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label className="block text-[#6f7e75] mb-1 font-bold uppercase text-[10px]">
-              SANCTIONED PEAK (kW)
+            <label className="block text-slate-700 font-semibold mb-1">
+              Sanctioned Peak (kW)
             </label>
             <input
               type="number"
@@ -134,13 +134,13 @@ export const AddFacilityModal: React.FC<AddFacilityModalProps> = ({
               max="2000"
               value={peakThresholdKw}
               onChange={(e) => setPeakThresholdKw(Number(e.target.value))}
-              className="w-full bg-[#fbfbfa] border border-[#dcdcd2] px-3 py-2 text-[#101512] focus:border-[#059669] focus:outline-hidden"
+              className="w-full bg-white border border-slate-200 rounded-md px-3 py-2 text-slate-900 focus:border-green-600 focus:outline-hidden focus:ring-1 focus:ring-green-600 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-[#6f7e75] mb-1 font-bold uppercase text-[10px]">
-              SOLAR ARRAY (kWp)
+            <label className="block text-slate-700 font-semibold mb-1">
+              Solar Array (kWp)
             </label>
             <input
               type="number"
@@ -148,20 +148,20 @@ export const AddFacilityModal: React.FC<AddFacilityModalProps> = ({
               max="500"
               value={solarCapacityKwp}
               onChange={(e) => setSolarCapacityKwp(Number(e.target.value))}
-              className="w-full bg-[#fbfbfa] border border-[#dcdcd2] px-3 py-2 text-[#101512] focus:border-[#059669] focus:outline-hidden"
+              className="w-full bg-white border border-slate-200 rounded-md px-3 py-2 text-slate-900 focus:border-green-600 focus:outline-hidden focus:ring-1 focus:ring-green-600 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-[#6f7e75] mb-1 font-bold uppercase text-[10px]">
-              FLOOR AREA (SQ FT)
+            <label className="block text-slate-700 font-semibold mb-1">
+              Floor Area (sq ft)
             </label>
             <input
               type="number"
               min="5000"
               value={floorAreaSqFt}
               onChange={(e) => setFloorAreaSqFt(Number(e.target.value))}
-              className="w-full bg-[#fbfbfa] border border-[#dcdcd2] px-3 py-2 text-[#101512] focus:border-[#059669] focus:outline-hidden"
+              className="w-full bg-white border border-slate-200 rounded-md px-3 py-2 text-slate-900 focus:border-green-600 focus:outline-hidden focus:ring-1 focus:ring-green-600 transition-colors"
             />
           </div>
         </div>
