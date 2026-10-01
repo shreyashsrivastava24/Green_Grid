@@ -22,7 +22,8 @@ import { RecommendationsPage } from './components/pages/RecommendationsPage';
 import { SettingsPage } from './components/pages/SettingsPage';
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const [activePage, setActivePage] = useState('landing');
   const [selectedFacilityId, setSelectedFacilityId] = useState('all');
   const [facilities, setFacilities] = useState(INITIAL_FACILITIES);
@@ -33,9 +34,32 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [toasts, setToasts] = useState([]);
 
-  // Initial synchronization with Django backend
   useEffect(() => {
     let isMounted = true;
+
+    async function validateSession() {
+      const token = localStorage.getItem('greengrid_access_token');
+      if (!token) {
+        if (isMounted) {
+          setIsLoggedIn(false);
+          setIsAuthReady(true);
+        }
+        return;
+      }
+
+      try {
+        const profile = await api.auth.getProfile();
+        if (!isMounted) return;
+        setIsLoggedIn(Boolean(profile));
+      } catch (err) {
+        if (!isMounted) return;
+        api.auth.logout();
+        setIsLoggedIn(false);
+      } finally {
+        if (isMounted) setIsAuthReady(true);
+      }
+    }
+
     async function loadBackendData() {
       try {
         const [liveFacilities, liveAlerts, liveRecs, liveBills] = await Promise.all([
@@ -53,6 +77,8 @@ export default function App() {
         console.info('Backend initial sync notice:', err);
       }
     }
+
+    validateSession();
     loadBackendData();
     return () => {
       isMounted = false;
@@ -194,6 +220,14 @@ export default function App() {
 
   const unreadAlertCount = alerts.filter((a) => a.status === 'Active').length;
 
+  if (!isAuthReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-900">
+        <div className="text-sm text-slate-500">Checking authentication…</div>
+      </div>
+    );
+  }
+
   // If user is not logged in, or explicitly on 'login' page
   if (!isLoggedIn || activePage === 'login') {
     return (
@@ -228,7 +262,9 @@ export default function App() {
         activePage={activePage}
         onNavigate={setActivePage}
         onLogout={() => {
+          api.auth.logout();
           setIsLoggedIn(false);
+          setIsAuthReady(true);
           setActivePage('login');
         }}
         unreadAlertCount={unreadAlertCount}

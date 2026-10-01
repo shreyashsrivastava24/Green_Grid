@@ -20,19 +20,51 @@ async function fetchApi(endpoint, options = {}) {
       headers,
     });
 
-    if (!res.ok) {
-      console.warn(`[GreenGrid API] ${options.method || 'GET'} ${endpoint} returned status ${res.status}`);
-      return null;
+    let json;
+    try {
+      json = await res.json();
+    } catch {
+      json = null;
     }
 
-    const json = await res.json();
-    if (json.success && json.data !== undefined) {
+    if (!res.ok) {
+      const message = json?.message || `Request failed with status ${res.status}.`;
+      const error = {
+        status: res.status,
+        message,
+        errors: json?.errors || null,
+        endpoint,
+      };
+      console.warn(`[GreenGrid API] ${options.method || 'GET'} ${endpoint} returned status ${res.status}: ${message}`);
+      throw error;
+    }
+
+    if (json && json.success === false) {
+      throw {
+        status: res.status || 400,
+        message: json.message || 'The server returned an unsuccessful response.',
+        errors: json.errors || null,
+        endpoint,
+      };
+    }
+
+    if (json && json.success !== undefined && json.data !== undefined) {
       return json.data;
     }
     return json;
   } catch (err) {
-    console.info(`[GreenGrid API] Backend at ${API_BASE} currently offline or unreachable. Using cached state.`);
-    return null;
+    if (err && typeof err === 'object' && 'status' in err) {
+      throw err;
+    }
+
+    const networkError = {
+      status: 'network',
+      message: 'Unable to reach the GreenGrid backend. Please check the server connection and try again.',
+      errors: null,
+      endpoint,
+    };
+    console.info(`[GreenGrid API] Backend at ${API_BASE} currently offline or unreachable.`);
+    throw networkError;
   }
 }
 
@@ -60,6 +92,10 @@ export const api = {
         localStorage.setItem('greengrid_refresh_token', res.tokens.refresh);
       }
       return res;
+    },
+    logout: () => {
+      localStorage.removeItem('greengrid_access_token');
+      localStorage.removeItem('greengrid_refresh_token');
     },
     getProfile: () => fetchApi('/auth/me/'),
   },

@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import Bill
 
 class BillSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+
     # CamelCase aliases matching frontend TypeScript Bill interface
     invoiceNo = serializers.CharField(source='invoice_no', required=False)
     billingPeriod = serializers.CharField(source='billing_period', required=False)
@@ -55,4 +57,4 @@ class BillSerializer(serializers.ModelSerializer):
             'totalAmountInr',
             'created_at',
         ]
-        read_only_fields = ['created_at']
+        read_only_fields = ['id', 'created_at']

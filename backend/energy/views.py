@@ -2,13 +2,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 from django.db.models import Sum, Avg, Max
-from greengrid.utils import api_response, api_error
+from greengrid.utils import api_response, api_error, IsAdminOrFacilityManagerOrReadOnly
 from facilities.models import Facility
 from .models import EnergyReading
 from .serializers import EnergyReadingSerializer
 
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminOrFacilityManagerOrReadOnly])
 def energy_readings_list_create(request):
     """
     GET /api/energy/ - List readings with filters (facility, date range, interval).
@@ -44,6 +44,11 @@ def energy_readings_list_create(request):
         return api_response(data=serializer.data)
 
     elif request.method == 'POST':
+        if not request.user or not request.user.is_authenticated:
+            return api_error(message="Authentication required.", status_code=status.HTTP_401_UNAUTHORIZED)
+        if getattr(request.user, 'role', None) not in {'Admin', 'Facility Manager'}:
+            return api_error(message="You do not have permission to ingest energy telemetry.", status_code=status.HTTP_403_FORBIDDEN)
+
         serializer = EnergyReadingSerializer(data=request.data)
         if serializer.is_valid():
             reading = serializer.save()

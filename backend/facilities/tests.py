@@ -85,6 +85,7 @@ class GreenGridIntegrationTests(TestCase):
         self.assertEqual(bill.total_amount, 58500.0)
 
     def test_alerts_rule_check(self):
+        self.client.force_login(self.user)
         # Trigger peak overload
         self.facility.current_consumption = 450.0 # Exceeds peak_threshold_kw of 400.0
         self.facility.save()
@@ -96,6 +97,7 @@ class GreenGridIntegrationTests(TestCase):
         self.assertGreaterEqual(data.get('data', {}).get('alerts_created', 0), 1)
 
     def test_recommendation_generation(self):
+        self.client.force_login(self.user)
         resp = self.client.post('/api/recommendations/generate/')
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
@@ -121,3 +123,53 @@ class GreenGridIntegrationTests(TestCase):
         data = resp.json()
         self.assertTrue(data.get('success'))
         self.assertIn('avoidedCo2Tonnes', data.get('data', {}))
+
+    def test_anonymous_facility_mutations_require_auth(self):
+        payload = {
+            'id': 'fac-anon-01',
+            'name': 'Anonymous Facility',
+            'location': 'Bengaluru',
+            'type': 'Commercial',
+            'status': 'Normal',
+        }
+        create_resp = self.client.post('/api/facilities/', data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(create_resp.status_code, 403)
+
+        update_resp = self.client.put(
+            f'/api/facilities/{self.facility.id}/',
+            data=json.dumps({'status': 'Attention'}),
+            content_type='application/json',
+        )
+        self.assertEqual(update_resp.status_code, 403)
+
+    def test_authenticated_energy_ingest_succeeds(self):
+        self.client.force_login(self.user)
+        payload = {
+            'facility': self.facility.id,
+            'timestamp': '2026-10-01T12:00:00Z',
+            'date': '2026-10-01',
+            'interval': 'hourly',
+            'time_label': '12:00',
+            'consumption_kwh': 412.0,
+            'grid_consumption_kwh': 270.0,
+            'solar_generation_kwh': 142.0,
+            'cost': 2200.0,
+        }
+        resp = self.client.post('/api/energy/', data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(resp.status_code, 201)
+        self.assertTrue(resp.json().get('success'))
+
+    def test_anonymous_energy_ingest_requires_auth(self):
+        payload = {
+            'facility': self.facility.id,
+            'timestamp': '2026-10-01T12:00:00Z',
+            'date': '2026-10-01',
+            'interval': 'hourly',
+            'time_label': '12:00',
+            'consumption_kwh': 412.0,
+            'grid_consumption_kwh': 270.0,
+            'solar_generation_kwh': 142.0,
+            'cost': 2200.0,
+        }
+        resp = self.client.post('/api/energy/', data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(resp.status_code, 403)

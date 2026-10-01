@@ -1,6 +1,32 @@
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.views import exception_handler
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+
+
+class IsAdminOrFacilityManager(BasePermission):
+    """Restrict writes to Admin and Facility Manager roles."""
+    message = "Only Admin or Facility Manager users can perform this action."
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            raise AuthenticationFailed('Authentication required.')
+
+        if getattr(request.user, 'role', None) not in {'Admin', 'Facility Manager'}:
+            raise PermissionDenied(self.message)
+
+        return True
+
+
+class IsAdminOrFacilityManagerOrReadOnly(IsAdminOrFacilityManager):
+    """Allow safe reads publicly, but restrict mutation endpoints to authorized roles."""
+
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        return super().has_permission(request, view)
+
 
 def api_response(data=None, message="Success", status_code=status.HTTP_200_OK, success=True):
     """

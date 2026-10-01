@@ -2,13 +2,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 from django.utils import timezone
-from greengrid.utils import api_response, api_error
+from greengrid.utils import api_response, api_error, IsAdminOrFacilityManagerOrReadOnly
 from facilities.models import Facility
 from .models import Alert
 from .serializers import AlertSerializer
 
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminOrFacilityManagerOrReadOnly])
 def alert_list_create(request):
     """
     GET /api/alerts/ - List alerts with optional status, severity, or facility filter.
@@ -33,6 +33,11 @@ def alert_list_create(request):
         return api_response(data=serializer.data)
 
     elif request.method == 'POST':
+        if not request.user or not request.user.is_authenticated:
+            return api_error(message="Authentication required.", status_code=status.HTTP_401_UNAUTHORIZED)
+        if getattr(request.user, 'role', None) not in {'Admin', 'Facility Manager'}:
+            return api_error(message="You do not have permission to manage alerts.", status_code=status.HTTP_403_FORBIDDEN)
+
         data = request.data.copy()
         # Aliases mapping
         if 'facilityId' in data and 'facility' not in data:
@@ -55,7 +60,7 @@ def alert_list_create(request):
         return api_error(message="Invalid alert data.", errors=serializer.errors)
 
 @api_view(['GET', 'PUT'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminOrFacilityManagerOrReadOnly])
 def alert_detail(request, pk):
     """
     GET /api/alerts/<id>/ - View alert details.
@@ -70,6 +75,11 @@ def alert_detail(request, pk):
         return api_response(data=AlertSerializer(alert).data)
 
     elif request.method == 'PUT':
+        if not request.user or not request.user.is_authenticated:
+            return api_error(message="Authentication required.", status_code=status.HTTP_401_UNAUTHORIZED)
+        if getattr(request.user, 'role', None) not in {'Admin', 'Facility Manager'}:
+            return api_error(message="You do not have permission to update alerts.", status_code=status.HTTP_403_FORBIDDEN)
+
         new_status = request.data.get('status')
         if new_status:
             alert.status = new_status
@@ -83,11 +93,16 @@ def alert_detail(request, pk):
         )
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminOrFacilityManagerOrReadOnly])
 def trigger_test_alert(request):
     """
     POST /api/alerts/test/ - Simulates an instantaneous spike alert for testing.
     """
+    if not request.user or not request.user.is_authenticated:
+        return api_error(message="Authentication required.", status_code=status.HTTP_401_UNAUTHORIZED)
+    if getattr(request.user, 'role', None) not in {'Admin', 'Facility Manager'}:
+        return api_error(message="You do not have permission to trigger alerts.", status_code=status.HTTP_403_FORBIDDEN)
+
     facility = Facility.objects.first()
     if not facility:
         return api_error(message="No facility available to attach alert to.")
@@ -111,7 +126,7 @@ def trigger_test_alert(request):
     )
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminOrFacilityManagerOrReadOnly])
 def check_energy_rules(request):
     """
     POST /api/alerts/check/
@@ -119,6 +134,11 @@ def check_energy_rules(request):
     Checks all facilities. If current_consumption > peak_threshold_kw or
     exceeds threshold by 10%, an alert is automatically generated.
     """
+    if not request.user or not request.user.is_authenticated:
+        return api_error(message="Authentication required.", status_code=status.HTTP_401_UNAUTHORIZED)
+    if getattr(request.user, 'role', None) not in {'Admin', 'Facility Manager'}:
+        return api_error(message="You do not have permission to run alert rules.", status_code=status.HTTP_403_FORBIDDEN)
+
     facilities = Facility.objects.all()
     created_alerts = []
 

@@ -2,13 +2,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 from django.db.models import Sum
-from greengrid.utils import api_response, api_error
+from greengrid.utils import api_response, api_error, IsAdminOrFacilityManagerOrReadOnly
 from facilities.models import Facility
 from .models import Recommendation
 from .serializers import RecommendationSerializer
 
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminOrFacilityManagerOrReadOnly])
 def recommendation_list_create(request):
     """
     GET /api/recommendations/ - List recommendations with priority/category/facility filter.
@@ -49,6 +49,11 @@ def recommendation_list_create(request):
         })
 
     elif request.method == 'POST':
+        if not request.user or not request.user.is_authenticated:
+            return api_error(message="Authentication required.", status_code=status.HTTP_401_UNAUTHORIZED)
+        if getattr(request.user, 'role', None) not in {'Admin', 'Facility Manager'}:
+            return api_error(message="You do not have permission to create recommendations.", status_code=status.HTTP_403_FORBIDDEN)
+
         data = request.data.copy()
         if 'facilityId' in data and 'facility' not in data:
             data['facility'] = data['facilityId']
@@ -74,7 +79,7 @@ def recommendation_list_create(request):
         return api_error(message="Invalid recommendation data.", errors=serializer.errors)
 
 @api_view(['GET', 'PUT'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminOrFacilityManagerOrReadOnly])
 def recommendation_detail(request, pk):
     """
     GET /api/recommendations/<id>/ - View recommendation.
@@ -89,6 +94,11 @@ def recommendation_detail(request, pk):
         return api_response(data=RecommendationSerializer(rec).data)
 
     elif request.method == 'PUT':
+        if not request.user or not request.user.is_authenticated:
+            return api_error(message="Authentication required.", status_code=status.HTTP_401_UNAUTHORIZED)
+        if getattr(request.user, 'role', None) not in {'Admin', 'Facility Manager'}:
+            return api_error(message="You do not have permission to update recommendations.", status_code=status.HTTP_403_FORBIDDEN)
+
         is_applied = request.data.get('isApplied')
         if is_applied is None:
             is_applied = request.data.get('is_applied')
@@ -103,13 +113,18 @@ def recommendation_detail(request, pk):
         )
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminOrFacilityManagerOrReadOnly])
 def generate_recommendations(request):
     """
     POST /api/recommendations/generate/
     Rule-based energy recommendation engine:
     Evaluates facility consumption, peak hours, and solar penetration to generate actionable measures.
     """
+    if not request.user or not request.user.is_authenticated:
+        return api_error(message="Authentication required.", status_code=status.HTTP_401_UNAUTHORIZED)
+    if getattr(request.user, 'role', None) not in {'Admin', 'Facility Manager'}:
+        return api_error(message="You do not have permission to generate recommendations.", status_code=status.HTTP_403_FORBIDDEN)
+
     facilities = Facility.objects.all()
     created_recs = []
 

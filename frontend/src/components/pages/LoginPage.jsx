@@ -15,19 +15,22 @@ export const LoginPage = ({ onLogin }) => {
   const [password, setPassword] = useState('••••••••••••');
   const [rememberMe, setRememberMe] = useState(true);
   const [showForgotNotice, setShowForgotNotice] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoginError('');
+
     try {
       if (email === 'arjun.s@greengrid.internal' && password.includes('••')) {
         await api.auth.demoLogin(email);
       } else {
         await api.auth.login(email, password);
       }
+      onLogin();
     } catch (err) {
-      console.info('Live auth bypass, proceeding with session:', err);
+      setLoginError(err?.message || 'Authentication failed. Please verify your credentials and try again.');
     }
-    onLogin();
   };
 
   return (
@@ -194,6 +197,12 @@ export const LoginPage = ({ onLogin }) => {
               {showForgotNotice && (
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs">
                   Recovery token dispatched to Chief Energy Officer directory. Proceed with demo credentials below.
+                </div>
+              )}
+
+              {loginError && (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+                  {loginError}
                 </div>
               )}
 

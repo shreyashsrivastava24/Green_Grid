@@ -2,13 +2,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 from django.db.models import Sum
-from greengrid.utils import api_response, api_error
+from greengrid.utils import api_response, api_error, IsAdminOrFacilityManagerOrReadOnly
 from facilities.models import Facility
 from .models import Bill
 from .serializers import BillSerializer
 
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminOrFacilityManagerOrReadOnly])
 def billing_list_create(request):
     """
     GET /api/billing/ - List bills and monthly cost trends.
@@ -51,6 +51,11 @@ def billing_list_create(request):
         })
 
     elif request.method == 'POST':
+        if not request.user or not request.user.is_authenticated:
+            return api_error(message="Authentication required.", status_code=status.HTTP_401_UNAUTHORIZED)
+        if getattr(request.user, 'role', None) not in {'Admin', 'Facility Manager'}:
+            return api_error(message="You do not have permission to create utility bills.", status_code=status.HTTP_403_FORBIDDEN)
+
         data = request.data.copy()
         # CamelCase mapping
         mapping = {
